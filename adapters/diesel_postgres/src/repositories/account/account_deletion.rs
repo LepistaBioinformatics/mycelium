@@ -13,7 +13,7 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use chrono::Local;
+use chrono::{Local, NaiveDateTime};
 use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
@@ -85,101 +85,15 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
 
         match account_exists {
             Some(_) => {
-                let account_id_string = format!("{}-deleted", account_id);
-
-                let transaction_result: Result<(), _> =
-                    conn.transaction(|conn| {
-                        //
-                        // Soft delete account by updating its fields
-                        //
-                        let _ = diesel::update(
-                            account_model::table.find(account_id),
-                        )
-                        .set((
-                            account_model::name
-                                .eq(account_id_string.to_owned()),
-                            account_model::slug.eq(account_id_string),
-                            account_model::is_active.eq(false),
-                            account_model::is_deleted.eq(true),
-                            account_model::updated
-                                .eq(Some(Local::now().naive_utc())),
-                            account_model::meta.eq(serde_json::to_value(
-                                HashMap::<String, String>::new(),
-                            )
-                            .unwrap()),
-                        ))
-                        .execute(conn)
-                        .map_err(InternalError::from);
-
-                        let optional_user = user_model::table
-                            .filter(user_model::account_id.eq(account_id))
-                            .select(UserModel::as_select())
-                            .first::<UserModel>(conn)
-                            .optional()
-                            .map_err(InternalError::from)?;
-
-                        if let Some(user) = optional_user {
-                            let user_id = format!("{}-deleted", user.id);
-
-                            let _ =
-                                diesel::update(user_model::table.filter(
-                                    user_model::account_id.eq(account_id),
-                                ))
-                                .set((
-                                    user_model::username.eq(user_id.to_owned()),
-                                    user_model::email.eq(user_id.to_owned()),
-                                    user_model::first_name.eq(""),
-                                    user_model::last_name.eq(""),
-                                    user_model::is_active.eq(false),
-                                    user_model::is_principal.eq(false),
-                                    user_model::updated
-                                        .eq(Some(Local::now().naive_utc())),
-                                    user_model::updated
-                                        .eq(Some(Local::now().naive_utc())),
-                                ))
-                                .execute(conn)
-                                .map_err(InternalError::from);
-                        }
-
-                        //
-                        // Remove all associated tags
-                        //
-                        let _ = diesel::delete(account_tag_model::table)
-                            .filter(
-                                account_tag_model::account_id.eq(account_id),
-                            )
-                            .execute(conn)
-                            .map_err(InternalError::from);
-
-                        //
-                        // Remove all associated guest users
-                        //
-                        let _ =
-                            diesel::delete(guest_user_on_account_model::table)
-                                .filter(
-                                    guest_user_on_account_model::account_id
-                                        .eq(account_id),
-                                )
-                                .execute(conn)
-                                .map_err(InternalError::from);
-
-                        //
-                        // Remove all associated manager accounts on tenant
-                        //
-                        let _ = diesel::delete(
-                            manager_account_on_tenant_model::table,
-                        )
-                        .filter(
-                            manager_account_on_tenant_model::account_id
-                                .eq(account_id),
-                        )
-                        .execute(conn)
-                        .map_err(InternalError::from);
-
-                        Ok::<(), InternalError>(())
-                    });
+                let transaction_result = conn.transaction(|conn| {
+                    soft_delete_in_transaction(conn, account_id)
+                });
 
                 match transaction_result {
+                    Ok(0) => Ok(DeletionResponseKind::NotDeleted(
+                        account_id,
+                        "Account not found".to_string(),
+                    )),
                     Ok(_) => Ok(DeletionResponseKind::Deleted),
                     Err(InternalError::Database(e)) => {
                         deletion_err(format!("Database error: {e}")).as_error()
@@ -304,4 +218,81 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
             }
         }
     }
+}
+
+/// Anonymizes the account and its user and drops its tags, guests and tenant
+/// management links; the number of account rows updated
+///
+/// Every statement propagates its error: Postgres aborts the transaction on
+/// the first failure, so a swallowed error ends in a silent rollback that was
+/// reported as a deletion (#246).
+///
+fn soft_delete_in_transaction(
+    conn: &mut PgConnection,
+    account_id: Uuid,
+) -> Result<usize, InternalError> {
+    let deleted_name = format!("{}-deleted", account_id);
+    let now = Some(Local::now().naive_utc());
+
+    let updated = diesel::update(account_model::table.find(account_id))
+        .set((
+            account_model::name.eq(deleted_name.to_owned()),
+            account_model::slug.eq(deleted_name),
+            account_model::is_active.eq(false),
+            account_model::is_deleted.eq(true),
+            account_model::updated.eq(now),
+            account_model::meta.eq(serde_json::to_value(HashMap::<
+                String,
+                String,
+            >::new())
+            .unwrap()),
+        ))
+        .execute(conn)?;
+
+    anonymize_user(conn, account_id, now)?;
+
+    diesel::delete(account_tag_model::table)
+        .filter(account_tag_model::account_id.eq(account_id))
+        .execute(conn)?;
+
+    diesel::delete(guest_user_on_account_model::table)
+        .filter(guest_user_on_account_model::account_id.eq(account_id))
+        .execute(conn)?;
+
+    diesel::delete(manager_account_on_tenant_model::table)
+        .filter(manager_account_on_tenant_model::account_id.eq(account_id))
+        .execute(conn)?;
+
+    Ok(updated)
+}
+
+fn anonymize_user(
+    conn: &mut PgConnection,
+    account_id: Uuid,
+    now: Option<NaiveDateTime>,
+) -> Result<(), InternalError> {
+    let Some(user) = user_model::table
+        .filter(user_model::account_id.eq(account_id))
+        .select(UserModel::as_select())
+        .first::<UserModel>(conn)
+        .optional()?
+    else {
+        return Ok(());
+    };
+
+    let deleted_id = format!("{}-deleted", user.id);
+
+    diesel::update(user_model::table.find(user.id))
+        .set((
+            user_model::username.eq(deleted_id.to_owned()),
+            user_model::email.eq(deleted_id),
+            user_model::first_name.eq(""),
+            user_model::last_name.eq(""),
+            user_model::is_active.eq(false),
+            user_model::is_principal.eq(false),
+            user_model::updated.eq(now),
+        ))
+        .execute(conn)?;
+
+    Ok(())
 }

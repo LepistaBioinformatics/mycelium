@@ -2,6 +2,8 @@ mod account_type_containment;
 mod shared;
 
 mod account_deletion;
+#[cfg(test)]
+mod account_deletion_live_test;
 mod account_fetching;
 mod account_registration;
 mod account_updating;
