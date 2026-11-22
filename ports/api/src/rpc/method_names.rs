@@ -206,6 +206,8 @@ pub const FEDERATION_SET_ENABLED: &str = "federation.setEnabled";
 pub const FEDERATION_LINKS_LIST: &str = "federation.links.list";
 #[cfg(feature = "federation")]
 pub const FEDERATION_LINKS_REVOKE: &str = "federation.links.revoke";
+#[cfg(feature = "federation")]
+pub const FEDERATION_ASSERTIONS_LIST: &str = "federation.assertions.list";
 
 // Federation, the user's own links (`federation` feature)
 #[cfg(feature = "federation")]
@@ -220,3 +222,6 @@ pub const BEGINNERS_FEDERATION_LIST_LINKS: &str =
 #[cfg(feature = "federation")]
 pub const BEGINNERS_FEDERATION_REVOKE_LINK: &str =
     "beginners.federation.revokeLink";
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_RESOLVE_GRANTS: &str =
+    "beginners.federation.resolveGrants";

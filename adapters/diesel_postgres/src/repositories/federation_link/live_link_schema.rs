@@ -21,6 +21,10 @@ const TRUST: &str =
 const LINKS: &str =
     include_str!("../../../sql/migrations/20261122_01_federation_links.sql");
 
+const RESOLUTION: &str = include_str!(
+    "../../../sql/migrations/20261123_01_federation_resolution.sql"
+);
+
 static PREPARE: Once = Once::new();
 
 struct TestPool(DbPool);
@@ -32,7 +36,9 @@ impl DbPoolProvider for TestPool {
 }
 
 /// The migrations as written, with `public.user` swapped for a minimal table
-/// of this schema (the foreign keys only need its `id`)
+/// of this schema (the foreign keys only need its `id`), and minimal tenant
+/// and account tables for the namespace probe; the audit log change is left
+/// out
 fn tables() -> String {
     let trust = TRUST.split("GRANT ALL").next().unwrap();
     let links = LINKS
@@ -40,9 +46,14 @@ fn tables() -> String {
         .next()
         .unwrap()
         .replace("public.user", "link_test_user");
+    let resolution = RESOLUTION.split("ALTER TABLE").next().unwrap();
 
     format!(
-        "DROP TABLE IF EXISTS federation_link_consent;
+        "DROP TABLE IF EXISTS federation_namespace_claim;
+         DROP TABLE IF EXISTS federation_assertion_cache;
+         DROP TABLE IF EXISTS tenant;
+         DROP TABLE IF EXISTS account;
+         DROP TABLE IF EXISTS federation_link_consent;
          DROP TABLE IF EXISTS federation_link_request;
          DROP TABLE IF EXISTS federation_identity_link;
          DROP TABLE IF EXISTS federation_request_nonce;
@@ -50,8 +61,11 @@ fn tables() -> String {
          DROP TABLE IF EXISTS federation_peer;
          DROP TABLE IF EXISTS link_test_user;
          CREATE TABLE link_test_user (id UUID PRIMARY KEY);
+         CREATE TABLE tenant (id UUID PRIMARY KEY);
+         CREATE TABLE account (id UUID PRIMARY KEY);
          {trust}
-         {links}"
+         {links}
+         {resolution}"
     )
 }
 
@@ -105,4 +119,25 @@ pub(crate) fn user_and_peer(pool: &DbPool) -> (Uuid, Uuid) {
         .unwrap();
 
     (user_id, peer_id)
+}
+
+/// An active link of a fresh user with a fresh peer: `(link, peer)`
+pub(crate) fn active_link(pool: &DbPool) -> (Uuid, Uuid) {
+    let (user_id, peer_id) = user_and_peer(pool);
+    let link_id = Uuid::new_v4();
+
+    pool.get()
+        .unwrap()
+        .batch_execute(&format!(
+            "INSERT INTO federation_identity_link
+                (id, local_user_id, local_email, peer_id, peer_subject_ref,
+                 local_subject_ref, status)
+             VALUES ('{link_id}', '{user_id}', 'user-01@example.com',
+                     '{peer_id}', '{}', '{}', 'active');",
+            Uuid::new_v4().simple(),
+            Uuid::new_v4().simple()
+        ))
+        .unwrap();
+
+    (link_id, peer_id)
 }

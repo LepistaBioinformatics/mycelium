@@ -26,7 +26,8 @@ pub(crate) struct PeerArguments {
 #[derive(Parser, Debug, PartialEq)]
 pub(crate) enum PeerCommands {
     /// Declare a peer; the gateway handshakes with it on its next health
-    /// round. Its policy starts denying everything (FED-10).
+    /// round. Its policy denies everything (FED-10) unless `--may-assert`
+    /// accepts the grants it asserts.
     Add(AddPeerArguments),
 
     /// Print every declared peer as JSON
@@ -60,6 +61,10 @@ pub(crate) struct AddPeerArguments {
     /// Assertion kinds this instance serves to the peer (repeatable)
     #[clap(long = "serve")]
     pub serve_kinds: Vec<String>,
+
+    /// Accept the grants the peer asserts for linked users (FED-10)
+    #[clap(long)]
+    pub may_assert: bool,
 }
 
 impl AddPeerArguments {
@@ -70,7 +75,10 @@ impl AddPeerArguments {
             display_name: self.display_name,
             consume_kinds: self.consume_kinds,
             serve_kinds: self.serve_kinds,
-            policy: FederationPolicy::default(),
+            policy: FederationPolicy {
+                may_assert: self.may_assert,
+                ..FederationPolicy::default()
+            },
         }
     }
 }
@@ -195,6 +203,26 @@ mod tests {
         assert_eq!(peer.consume_kinds, ["profile.v1"]);
         assert_eq!(peer.serve_kinds, ["profile.v1", "tenant.v1"]);
         assert_eq!(peer.policy, FederationPolicy::default());
+    }
+
+    #[test]
+    fn may_assert_opens_the_policy_to_assertions_only() {
+        let id = Uuid::new_v4().to_string();
+
+        let PeerCommands::Add(args) = parse(&[
+            "add",
+            "--base-url",
+            "https://myc-02.example.com",
+            "--instance-id",
+            &id,
+            "--may-assert",
+        ]) else {
+            panic!("not add");
+        };
+        let policy = args.into_new_peer().policy;
+
+        assert!(policy.may_assert);
+        assert!(!policy.allow_different_emails);
     }
 
     #[test]

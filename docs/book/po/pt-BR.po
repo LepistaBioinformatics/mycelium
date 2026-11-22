@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-21T21:49:11-03:00\n"
+"POT-Creation-Date: 2026-11-21T23:23:20-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -92,71 +92,75 @@ msgstr "Assinatura de Profile Downstream"
 msgid "Identity Linking Across Instances"
 msgstr "Vinculação de identidade vs. autenticação"
 
-#: src/SUMMARY.md:28
+#: src/SUMMARY.md:27 src/29-federated-grants.md:1
+msgid "Federated Grants"
+msgstr ""
+
+#: src/SUMMARY.md:29
 msgid "Advanced Topics"
 msgstr "Tópicos Avançados"
 
-#: src/SUMMARY.md:30 src/10-alternative-idps.md:1
+#: src/SUMMARY.md:31 src/10-alternative-idps.md:1
 msgid "Alternative Identity Providers"
 msgstr "Provedores de Identidade Alternativos"
 
-#: src/SUMMARY.md:31 src/12-response-callbacks.md:1
+#: src/SUMMARY.md:32 src/12-response-callbacks.md:1
 msgid "Response Callbacks"
 msgstr "Callbacks de Resposta"
 
-#: src/SUMMARY.md:32 src/16-webhooks.md:1
+#: src/SUMMARY.md:33 src/16-webhooks.md:1
 msgid "Outbound Webhooks"
 msgstr "Webhooks de Saída"
 
-#: src/SUMMARY.md:33 src/17-error-codes.md:1
+#: src/SUMMARY.md:34 src/17-error-codes.md:1
 msgid "Error Codes"
 msgstr "Códigos de Erro"
 
-#: src/SUMMARY.md:34
+#: src/SUMMARY.md:35
 msgid "AI Agent Integration (MCP)"
 msgstr "Integração com Agentes de IA (MCP)"
 
-#: src/SUMMARY.md:35 src/14-json-rpc.md:1
+#: src/SUMMARY.md:36 src/14-json-rpc.md:1
 msgid "JSON-RPC Interface"
 msgstr "Interface JSON-RPC"
 
-#: src/SUMMARY.md:37
+#: src/SUMMARY.md:38
 msgid "Integrations"
 msgstr "Integrações"
 
-#: src/SUMMARY.md:39 src/19-sdk.md:1
+#: src/SUMMARY.md:40 src/19-sdk.md:1
 msgid "SDK Integration Guide"
 msgstr "Guia de Integração do SDK"
 
-#: src/SUMMARY.md:40 src/18-cli.md:1
+#: src/SUMMARY.md:41 src/18-cli.md:1
 msgid "CLI Reference"
 msgstr "Referência da CLI"
 
-#: src/SUMMARY.md:42
+#: src/SUMMARY.md:43
 msgid "Development"
 msgstr "Desenvolvimento"
 
-#: src/SUMMARY.md:44 src/20-encryption-inventory.md:1
+#: src/SUMMARY.md:45 src/20-encryption-inventory.md:1
 msgid "Encryption Inventory"
 msgstr ""
 
-#: src/SUMMARY.md:45 src/21-envelope-encryption-migration.md:1
+#: src/SUMMARY.md:46 src/21-envelope-encryption-migration.md:1
 msgid "Envelope Encryption Migration Guide"
 msgstr ""
 
-#: src/SUMMARY.md:46 src/22-hmac-key-rotation.md:1
+#: src/SUMMARY.md:47 src/22-hmac-key-rotation.md:1
 msgid "HMAC Key Rotation"
 msgstr ""
 
-#: src/SUMMARY.md:47 src/07-running-tests.md:1
+#: src/SUMMARY.md:48 src/07-running-tests.md:1
 msgid "Running Tests"
 msgstr "Executando Testes"
 
-#: src/SUMMARY.md:48 src/08-release-process.md:1
+#: src/SUMMARY.md:49 src/08-release-process.md:1
 msgid "Release Process"
 msgstr "Processo de Lançamento"
 
-#: src/SUMMARY.md:49 src/09-log-cache-tests.md:1
+#: src/SUMMARY.md:50 src/09-log-cache-tests.md:1
 msgid "Log Tests for Cache and Identity Flow"
 msgstr "Testes de Log para Cache e Fluxo de Identidade"
 
@@ -5009,6 +5013,7 @@ msgid "Variable"
 msgstr "Variável"
 
 #: src/27-downstream-profile-signature.md:140 src/28-identity-linking.md:91
+#: src/29-federated-grants.md:37 src/29-federated-grants.md:90
 #: src/17-error-codes.md:44 src/14-json-rpc.md:371
 #: src/22-hmac-key-rotation.md:122
 msgid "Meaning"
@@ -5830,20 +5835,21 @@ msgstr ""
 msgid "Either side may revoke, through the API only:"
 msgstr ""
 
-#: src/28-identity-linking.md:64 src/14-json-rpc.md:64 src/14-json-rpc.md:80
-#: src/14-json-rpc.md:92 src/14-json-rpc.md:106 src/14-json-rpc.md:115
-#: src/14-json-rpc.md:121 src/14-json-rpc.md:127 src/14-json-rpc.md:133
-#: src/14-json-rpc.md:143 src/14-json-rpc.md:151 src/14-json-rpc.md:169
-#: src/14-json-rpc.md:187 src/14-json-rpc.md:197 src/14-json-rpc.md:212
-#: src/14-json-rpc.md:223 src/14-json-rpc.md:233 src/14-json-rpc.md:240
-#: src/14-json-rpc.md:254 src/14-json-rpc.md:261 src/14-json-rpc.md:268
-#: src/14-json-rpc.md:276 src/14-json-rpc.md:288 src/14-json-rpc.md:295
-#: src/14-json-rpc.md:302 src/14-json-rpc.md:309 src/14-json-rpc.md:322
-#: src/14-json-rpc.md:337 src/14-json-rpc.md:347 src/19-sdk.md:89
+#: src/28-identity-linking.md:64 src/29-federated-grants.md:81
+#: src/14-json-rpc.md:64 src/14-json-rpc.md:80 src/14-json-rpc.md:92
+#: src/14-json-rpc.md:106 src/14-json-rpc.md:115 src/14-json-rpc.md:121
+#: src/14-json-rpc.md:127 src/14-json-rpc.md:133 src/14-json-rpc.md:143
+#: src/14-json-rpc.md:151 src/14-json-rpc.md:169 src/14-json-rpc.md:187
+#: src/14-json-rpc.md:197 src/14-json-rpc.md:212 src/14-json-rpc.md:223
+#: src/14-json-rpc.md:233 src/14-json-rpc.md:240 src/14-json-rpc.md:254
+#: src/14-json-rpc.md:261 src/14-json-rpc.md:268 src/14-json-rpc.md:276
+#: src/14-json-rpc.md:288 src/14-json-rpc.md:295 src/14-json-rpc.md:302
+#: src/14-json-rpc.md:309 src/14-json-rpc.md:322 src/14-json-rpc.md:337
+#: src/14-json-rpc.md:347 src/19-sdk.md:89
 msgid "Method"
 msgstr "Método"
 
-#: src/28-identity-linking.md:64
+#: src/28-identity-linking.md:64 src/29-federated-grants.md:81
 msgid "Who"
 msgstr ""
 
@@ -5903,15 +5909,15 @@ msgid ""
 "grants."
 msgstr ""
 
-#: src/28-identity-linking.md:89
+#: src/28-identity-linking.md:89 src/29-federated-grants.md:88
 msgid "Settings"
 msgstr ""
 
-#: src/28-identity-linking.md:91
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:90
 msgid "Setting"
 msgstr ""
 
-#: src/28-identity-linking.md:91
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:90
 msgid "Where"
 msgstr ""
 
@@ -5919,7 +5925,8 @@ msgstr ""
 msgid "`linkRequestTtlSecs`"
 msgstr ""
 
-#: src/28-identity-linking.md:93
+#: src/28-identity-linking.md:93 src/29-federated-grants.md:92
+#: src/29-federated-grants.md:93 src/29-federated-grants.md:94
 msgid "`[core.federation]`"
 msgstr ""
 
@@ -5931,12 +5938,242 @@ msgstr ""
 msgid "`allowDifferentEmails`"
 msgstr ""
 
-#: src/28-identity-linking.md:94
+#: src/28-identity-linking.md:94 src/29-federated-grants.md:95
 msgid "Peer policy"
 msgstr ""
 
 #: src/28-identity-linking.md:94
 msgid "Allows linking accounts whose emails differ (default: no)"
+msgstr ""
+
+#: src/29-federated-grants.md:3
+msgid ""
+"Once an account on this instance (the _consumer_) is linked to the same "
+"person's account on a peer (the _issuer_), the consumer can ask the issuer "
+"which roles that person holds there. The issuer answers with a signed "
+"**assertion**, and the consumer verifies, checks and stores it."
+msgstr ""
+
+#: src/29-federated-grants.md:8
+msgid ""
+"Requires everything [identity linking](./28-identity-linking.md) requires, "
+"plus `profile.v1` negotiated with the issuer (both sides advertise it in "
+"their self-description from this release) and `mayAssert` set in the "
+"issuer's peer policy on the consumer (`myc-cli federation peer add --may-"
+"assert`). A peer asserts nothing until the operator allows it."
+msgstr ""
+
+#: src/29-federated-grants.md:14
+msgid ""
+"The grants are not yet part of the `x-mycelium-profile` header that "
+"downstream services receive: that change breaks the SDK contract and ships "
+"with the SDKs. Until then, resolution runs on demand."
+msgstr ""
+
+#: src/29-federated-grants.md:20
+msgid "Asking for grants"
+msgstr ""
+
+#: src/29-federated-grants.md:22
+msgid ""
+"The linked user calls `beginners.federation.resolveGrants` on the consumer. "
+"For each peer the user has an active link with:"
+msgstr ""
+
+#: src/29-federated-grants.md:25
+msgid ""
+"A peer that is quarantined, unreachable, did not negotiate `profile.v1` or "
+"is not allowed to assert is **skipped**."
+msgstr ""
+
+#: src/29-federated-grants.md:27
+msgid ""
+"A stored assertion that has not expired is used as is (`stored`); the peer "
+"is not called."
+msgstr ""
+
+#: src/29-federated-grants.md:29
+msgid ""
+"Otherwise the consumer sends a signed `POST /federation/resolve` with the "
+"link's opaque reference. Every peer is asked in parallel, each call is "
+"bounded by `peerTimeoutMs`, and the whole resolution by `resolveDeadlineMs`."
+msgstr ""
+
+#: src/29-federated-grants.md:34
+msgid ""
+"The answer lists one outcome per peer, and `partial` is true when some peer "
+"could not contribute:"
+msgstr ""
+
+#: src/29-federated-grants.md:37
+msgid "Outcome"
+msgstr ""
+
+#: src/29-federated-grants.md:39
+msgid "`answered`"
+msgstr ""
+
+#: src/29-federated-grants.md:39
+msgid "The peer answered, the assertion passed every check and was stored"
+msgstr ""
+
+#: src/29-federated-grants.md:40
+msgid "`stored`"
+msgstr ""
+
+#: src/29-federated-grants.md:40
+msgid "Served from the store"
+msgstr ""
+
+#: src/29-federated-grants.md:41
+#, fuzzy
+msgid "`unknown`"
+msgstr "`unknown_key`"
+
+#: src/29-federated-grants.md:41
+msgid "The peer has no active link for the reference"
+msgstr ""
+
+#: src/29-federated-grants.md:42
+msgid "`skipped`"
+msgstr ""
+
+#: src/29-federated-grants.md:42
+msgid "The peer was not asked (the reason says why)"
+msgstr ""
+
+#: src/29-federated-grants.md:43
+msgid "`unreachable`"
+msgstr ""
+
+#: src/29-federated-grants.md:43
+msgid "The call failed or missed the deadline (partial)"
+msgstr ""
+
+#: src/29-federated-grants.md:44
+#, fuzzy
+msgid "`rejected`"
+msgstr "Quando injetado"
+
+#: src/29-federated-grants.md:44
+msgid "The assertion failed a check (partial; the reason says which)"
+msgstr ""
+
+#: src/29-federated-grants.md:46
+msgid ""
+"A partial result is not an error. An unreachable or rejected answer counts "
+"against the peer's circuit breaker, as a failed health check does."
+msgstr ""
+
+#: src/29-federated-grants.md:49
+#, fuzzy
+msgid "What the issuer answers"
+msgstr "O que o cabeçalho contém"
+
+#: src/29-federated-grants.md:51
+msgid ""
+"The issuer answers \"unknown\" unless the reference names an **active link "
+"with the caller**, the caller is an active peer and `profile.v1` was "
+"negotiated. The answer reveals nothing else."
+msgstr ""
+
+#: src/29-federated-grants.md:55
+msgid ""
+"Otherwise it signs an assertion (`typ: mycelium-assertion+jwt`, EdDSA, its "
+"federation key) bound to the caller (`aud`) and the reference (`sub`), valid "
+"for `assertionTtlSecs`. It carries the user's grants on the issuer, with the "
+"issuer's own tenant and account ids, and the list of those ids. It never "
+"carries instance-wide flags (staff, manager, account status) nor grants on "
+"system accounts: a peer cannot make anyone staff or manager elsewhere."
+msgstr ""
+
+#: src/29-federated-grants.md:62
+#, fuzzy
+msgid "What the consumer checks"
+msgstr "O que o Mycelium verifica"
+
+#: src/29-federated-grants.md:64
+msgid ""
+"**Signature, audience, subject and lifetime.** An unknown key id makes the "
+"consumer fetch the issuer's keys once before refusing."
+msgstr ""
+
+#: src/29-federated-grants.md:66
+msgid ""
+"**Lifetime.** An assertion is kept no longer than the consumer's own "
+"`assertionTtlSecs`, whatever the issuer signed: the short lifetime is what "
+"bounds a role removed on the issuer until revocations are pushed."
+msgstr ""
+
+#: src/29-federated-grants.md:69
+msgid ""
+"**ID collisions.** Every tenant and account id in the assertion must not "
+"exist on the consumer and must not have been claimed by another peer. The "
+"first peer to assert an id owns it. A collision rejects the whole assertion: "
+"a peer cannot borrow one of this instance's tenants, or another peer's."
+msgstr ""
+
+#: src/29-federated-grants.md:75
+msgid ""
+"Each call to a peer is recorded in the resource audit log "
+"(`federationResolution`), with its outcome and reason; reads from the store "
+"are not."
+msgstr ""
+
+#: src/29-federated-grants.md:79
+msgid "Inspecting"
+msgstr ""
+
+#: src/29-federated-grants.md:83
+msgid "`beginners.federation.resolveGrants`"
+msgstr ""
+
+#: src/29-federated-grants.md:83
+msgid "The linked user, own grants only"
+msgstr ""
+
+#: src/29-federated-grants.md:84
+msgid "`federation.assertions.list`"
+msgstr ""
+
+#: src/29-federated-grants.md:84
+msgid "Staff: every stored, unexpired assertion"
+msgstr ""
+
+#: src/29-federated-grants.md:86
+msgid "Expired assertions are purged by the federation dispatcher."
+msgstr ""
+
+#: src/29-federated-grants.md:92
+msgid "`assertionTtlSecs`"
+msgstr ""
+
+#: src/29-federated-grants.md:92
+msgid "Lifetime of the assertions this instance issues"
+msgstr ""
+
+#: src/29-federated-grants.md:93
+msgid "`peerTimeoutMs`"
+msgstr ""
+
+#: src/29-federated-grants.md:93
+msgid "Bound of one call to a peer"
+msgstr ""
+
+#: src/29-federated-grants.md:94
+msgid "`resolveDeadlineMs`"
+msgstr ""
+
+#: src/29-federated-grants.md:94
+msgid "Bound of a whole resolution"
+msgstr ""
+
+#: src/29-federated-grants.md:95
+msgid "`mayAssert`"
+msgstr ""
+
+#: src/29-federated-grants.md:95
+msgid "Whether the peer's assertions are accepted (default: no)"
 msgstr ""
 
 #: src/10-alternative-idps.md:3
