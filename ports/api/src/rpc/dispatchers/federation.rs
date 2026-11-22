@@ -12,11 +12,14 @@ use crate::{
 
 use actix_web::{web, HttpRequest};
 use myc_core::{
-    domain::dtos::{profile::Profile, written_by::WrittenBy},
+    domain::{
+        dtos::{profile::Profile, written_by::WrittenBy},
+        entities::PeerVocabularyReader,
+    },
     use_cases::federation::{
         ensure_federation_operator, list_federation_peers, list_identity_links,
-        list_stored_assertions, quarantine_peer, release_peer,
-        set_federation_enabled, LinkRevoker,
+        list_stored_assertions, quarantine_peer, read_peer_vocabulary,
+        release_peer, set_federation_enabled, LinkRevoker,
     },
 };
 use serde::{de::DeserializeOwned, Serialize};
@@ -49,6 +52,11 @@ pub async fn dispatch_federation(
         | method_names::FEDERATION_PEERS_RELEASE => {
             change_peer(app_module, method, parse(params)?).await
         }
+        method_names::FEDERATION_PEERS_ROLES => {
+            let instance_id =
+                parse::<FederationPeerParams>(params)?.instance_id;
+            peer_roles(app_module, req, &profile, instance_id).await
+        }
         method_names::FEDERATION_LINKS_LIST => to_result(
             list_identity_links(None, Box::new(app_module.resolve_ref())).await,
         ),
@@ -71,6 +79,34 @@ pub async fn dispatch_federation(
         }
         _ => Err(method_not_found(method)),
     }
+}
+
+/// A peer's guest-role vocabulary, verified (FED-40)
+async fn peer_roles(
+    app_module: &web::Data<SqlAppModule>,
+    req: Option<&HttpRequest>,
+    profile: &Profile,
+    instance_id: uuid::Uuid,
+) -> Result<serde_json::Value, JsonRpcError> {
+    let reader = req
+        .and_then(|req| req.app_data::<web::Data<dyn PeerVocabularyReader>>())
+        .ok_or_else(|| {
+            mapped_errors_to_jsonrpc_error(
+                mycelium_base::utils::errors::execution_err(
+                    "federation is not wired",
+                ),
+            )
+        })?;
+
+    to_result(
+        read_peer_vocabulary(
+            profile,
+            instance_id,
+            Box::new(app_module.resolve_ref()),
+            Box::new(reader.get_ref()),
+        )
+        .await,
+    )
 }
 
 pub(super) fn method_not_found(method: &str) -> JsonRpcError {
@@ -162,6 +198,7 @@ mod tests {
             method_names::FEDERATION_PEERS_LIST,
             method_names::FEDERATION_PEERS_QUARANTINE,
             method_names::FEDERATION_PEERS_RELEASE,
+            method_names::FEDERATION_PEERS_ROLES,
             method_names::FEDERATION_SET_ENABLED,
             method_names::FEDERATION_LINKS_LIST,
             method_names::FEDERATION_LINKS_REVOKE,

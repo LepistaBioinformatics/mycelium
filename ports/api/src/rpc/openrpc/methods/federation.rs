@@ -50,6 +50,12 @@ pub fn methods() -> Vec<serde_json::Value> {
             peer(),
         ),
         method(
+            method_names::FEDERATION_PEERS_ROLES,
+            "Read a peer's guest roles",
+            "Asks the peer for its guest-role vocabulary (assertion kind guest-role-vocabulary.v1) and verifies it. Answers verified roles, unknown (not negotiated, catalog off, or another kind) or rejected with the reason. Nothing is stored. Requires Staff privileges.",
+            peer(),
+        ),
+        method(
             method_names::FEDERATION_SET_ENABLED,
             "Switch federation on or off",
             "The runtime switch. Off is the kill-switch: the self-description answers 404 and every peer request is refused. On is refused while [core.federation] is absent. Requires Staff privileges.",
