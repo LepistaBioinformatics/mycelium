@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::federation::{FederationPeer, PeerStatus},
-    entities::{FederationPeerRead, FederationPeerWrite},
+    entities::{AssertionStoreWrite, FederationPeerRead, FederationPeerWrite},
 };
 
 use mycelium_base::{
@@ -19,21 +19,20 @@ pub async fn quarantine_peer(
     instance_id: Uuid,
     peer_read_repo: Box<&dyn FederationPeerRead>,
     peer_write_repo: Box<&dyn FederationPeerWrite>,
+    assertion_store: Box<&dyn AssertionStoreWrite>,
 ) -> Result<FederationPeer, MappedErrors> {
-    move_peer(
+    let peer = move_peer(
         instance_id,
         PeerStatus::Quarantined,
         *peer_read_repo,
         *peer_write_repo,
     )
-    .await
+    .await?;
+
+    assertion_store.forget_peer(peer.id).await?;
+    Ok(peer)
 }
 
-/// Lift a quarantine
-///
-/// The peer goes back to `declared`, so the next health round handshakes
-/// with it again before it is active.
-///
 #[tracing::instrument(name = "release_peer", skip_all)]
 pub async fn release_peer(
     instance_id: Uuid,
@@ -78,11 +77,13 @@ mod tests {
         domain::dtos::{
             federation::{
                 FederationPolicy, NewFederationPeer, NewPeerKey, PeerAdmission,
-                PeerKey,
+                PeerKey, ProfileAssertion, StoredAssertion, VerifiedAssertion,
             },
             written_by::WrittenBy,
         },
-        use_cases::federation::admit_requesting_peer,
+        use_cases::federation::{
+            admit_requesting_peer, resolution_test_doubles::Mesh,
+        },
     };
 
     use async_trait::async_trait;
@@ -217,6 +218,20 @@ mod tests {
         }))
     }
 
+    fn stored_from(peer_id: Uuid) -> StoredAssertion {
+        let now = Local::now();
+        StoredAssertion {
+            link_id: Uuid::new_v4(),
+            peer_id,
+            assertion: VerifiedAssertion {
+                jws: "jws".to_string(),
+                payload: ProfileAssertion::default(),
+                issued_at: now,
+                expires_at: now + chrono::Duration::seconds(60),
+            },
+        }
+    }
+
     fn instance_id(table: &Table) -> Uuid {
         table.0.lock().unwrap().instance_id
     }
@@ -235,14 +250,22 @@ mod tests {
     ) -> Result<(), MappedErrors> {
         let table = table();
 
+        let mesh = Mesh::default();
+        mesh.stored
+            .lock()
+            .unwrap()
+            .push(stored_from(table.0.lock().unwrap().id));
+
         let peer = quarantine_peer(
             instance_id(&table),
             Box::new(&table as &dyn FederationPeerRead),
             Box::new(&table as &dyn FederationPeerWrite),
+            Box::new(&mesh as &dyn AssertionStoreWrite),
         )
         .await?;
 
         assert_eq!(peer.status, PeerStatus::Quarantined);
+        assert!(mesh.stored.lock().unwrap().is_empty());
         assert_eq!(
             admission(&table).await,
             PeerAdmission::Refused(PeerStatus::Quarantined)
@@ -258,8 +281,15 @@ mod tests {
         let read = Box::new(&table as &dyn FederationPeerRead);
         let write = Box::new(&table as &dyn FederationPeerWrite);
 
-        quarantine_peer(instance_id(&table), read.clone(), write.clone())
-            .await?;
+        let mesh = Mesh::default();
+        let store = Box::new(&mesh as &dyn AssertionStoreWrite);
+        quarantine_peer(
+            instance_id(&table),
+            read.clone(),
+            write.clone(),
+            store,
+        )
+        .await?;
         let peer = release_peer(instance_id(&table), read, write).await?;
 
         assert_eq!(peer.status, PeerStatus::Declared);
@@ -275,10 +305,12 @@ mod tests {
     async fn an_unknown_peer_cannot_be_quarantined() {
         let table = table();
 
+        let mesh = Mesh::default();
         let outcome = quarantine_peer(
             Uuid::new_v4(),
             Box::new(&table as &dyn FederationPeerRead),
             Box::new(&table as &dyn FederationPeerWrite),
+            Box::new(&mesh as &dyn AssertionStoreWrite),
         )
         .await;
 
