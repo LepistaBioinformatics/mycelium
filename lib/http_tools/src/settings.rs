@@ -71,6 +71,9 @@ pub const FEDERATION_LINK_CONFIRM_PATH: &str = "/federation/link/confirm";
 /// Where a peer tells this instance a link was revoked (signed request)
 pub const FEDERATION_LINK_REVOKE_PATH: &str = "/federation/link/revoke";
 
+/// Where a peer asks this instance for a linked subject's grants (FED-11)
+pub const FEDERATION_RESOLVE_PATH: &str = "/federation/resolve";
+
 /// Upper bound of a peer response body read by the federation client
 pub const PEER_RESPONSE_MAX_BYTES: usize = 64 * 1024;
 
