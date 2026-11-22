@@ -63,7 +63,7 @@ pub async fn authorize_url(
     };
 
     let session = match start_hosted_login(
-        registered_clients(&auth_config),
+        registered_clients(&auth_config, &req, &sql_app_module).await,
         query.response_type.unwrap_or_default(),
         query.code_challenge_method.unwrap_or_default(),
         request,
@@ -103,10 +103,45 @@ pub async fn authorize_url(
     response
 }
 
-fn registered_clients(auth_config: &AuthConfig) -> HostedLoginClients {
-    match &auth_config.hosted_login {
+async fn registered_clients(
+    auth_config: &AuthConfig,
+    #[allow(unused_variables)] req: &HttpRequest,
+    #[allow(unused_variables)] sql_app_module: &SqlAppModule,
+) -> HostedLoginClients {
+    #[allow(unused_mut)]
+    let mut clients = match &auth_config.hosted_login {
         OptionalConfig::Enabled(config) => config.clients.clone(),
         OptionalConfig::Disabled => HostedLoginClients::default(),
+    };
+
+    // The issuer's identity linking pages sign users in here (FED-44), only
+    // while federation is present and switched on
+    #[cfg(feature = "federation")]
+    if let Some(client) = link_login_client(req, sql_app_module).await {
+        clients.0.push(client);
+    }
+
+    clients
+}
+
+#[cfg(feature = "federation")]
+async fn link_login_client(
+    req: &HttpRequest,
+    sql_app_module: &SqlAppModule,
+) -> Option<myc_core::domain::dtos::hosted_login::HostedLoginClient> {
+    let prepared = req
+        .app_data::<web::Data<Option<crate::federation::PreparedFederation>>>()
+        .and_then(|data| data.get_ref().as_ref())?;
+    let settings: &dyn myc_core::domain::entities::InstanceSettingsFetching =
+        sql_app_module.resolve_ref();
+
+    match myc_core::use_cases::federation::is_federation_enabled(Box::new(
+        settings,
+    ))
+    .await
+    {
+        Ok(true) => Some(crate::federation::link_login_client(prepared)),
+        _ => None,
     }
 }
 
