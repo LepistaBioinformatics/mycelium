@@ -94,6 +94,11 @@ If any step in the chain finds no match (wrong tenant, no write access, missing 
 | `.with_write_access()` | Require write permission |
 | `.with_roles(["role1", "role2"])` | Require at least one of the listed roles |
 | `.get_related_account_or_error()` | Return the matched account or raise |
+| `.with_federated()` | Add the grants peer instances asserted (`federatedResources`) to the local ones |
+| `.from_issuer(instance_id)` | Keep only the grants one peer instance asserted |
+
+Without `.with_federated()` or `.from_issuer()`, every filter sees local grants only. See
+[Federated Grants](./29-federated-grants.md#in-the-profile).
 
 ---
 

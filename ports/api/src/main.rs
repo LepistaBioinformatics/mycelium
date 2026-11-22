@@ -85,7 +85,7 @@ use dispatchers::{
 #[cfg(feature = "federation")]
 use federation::{
     build_peer_client, describe_this_instance, prepare_federation,
-    SignedPeerPoster, SignedPeerTombstoneSender,
+    RefreshThrottle, SignedPeerPoster, SignedPeerTombstoneSender,
 };
 use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
@@ -693,6 +693,10 @@ pub async fn main() -> std::io::Result<()> {
     let staff_bootstrap_claimed =
         web::Data::new(StaffBootstrapClaimed::default());
 
+    // One throttle of background federated refreshes for every worker
+    #[cfg(feature = "federation")]
+    let refresh_throttle = web::Data::new(RefreshThrottle::default());
+
     let server = HttpServer::new(move || {
         //
         // Here we should clone the config to avoid borrowing issues
@@ -791,6 +795,7 @@ pub async fn main() -> std::io::Result<()> {
 
             let base_app = base_app
                 .app_data(web::Data::new(federation.clone()))
+                .app_data(refresh_throttle.clone())
                 .app_data(web::Data::from(instance_settings))
                 .app_data(web::Data::from(guest_roles))
                 .configure(instance_self_description_endpoints::configure)

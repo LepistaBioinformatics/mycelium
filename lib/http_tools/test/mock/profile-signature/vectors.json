@@ -628,6 +628,19 @@
       "trustedKeyVersions": [
         "1"
       ]
+    },
+    {
+      "description": "A federated grant beside a local one; local-only filters ignore it",
+      "expected": "valid",
+      "expectedAudience": "billing-api",
+      "name": "valid_with_federated_resources",
+      "nowSeconds": 1800000000,
+      "profileHeader": "KLUv/QBYXQ0A1plLIlBLnAMgI/ET3uwKLsaXbn5xQGzMkJ531f9+STGSS25mdkI/AEMAQwD64PZ09cZxG+KDSKi7+jZ2ztl3oQaxIUNXj70xYJ200IcV2MZOz+5YF3v1o8m1VpJrrZXr7A+/kcDecJ9D9EaS5LQq4pui1nQZHJvTBAqCNCbgMujTguarbacQ+4s4SgxbL0yJ5qs3eRxHksdxHHmc/SFoTa8UInaCkd2pxO0xPGgO6gBf8enb2JrTEH31YzWpKEqSiqIoqTwwagvfYO9tcIp6EZ7tt43dlXPTY+8pakxsRwtwGXHdDrQquKFBp1XxLCOCAU0uy5LksixLLm+SYZgkGYZhkjk73Kmb30iICvdZ6CpCIYIhhsu4+qMLz76AK129SQRBkkQQBEkknbbInX1dBB80IGACEigq3RREJnwpQM8gIDSA+oUeN2gAEUlUvirZjFhJklD2MXRSL0hDgCBJklducSEAuC0K95KHYbEXEgyh/ABXRblZ3AiSJCnfhkiAWwZsGX6WY56gu+X0zqtqsI8jihnLeKsZQqwkSVL2y3d7rDMLnIOApFkJAw==",
+      "signature": "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6IjEifQ.eyJpYXQiOjE4MDAwMDAwMDAsInBoIjoiTDJQTk1QRkkzSlRCeHZ5NnJtd3NmUzB0QzZMaGxGb2k2dXA1ZTg1WDZEOCIsImF1ZCI6ImJpbGxpbmctYXBpIn0.qKIiHU1QV7kyBbUjxlEnnjBHQqbsV1cWvTWUncbrDO5Hb96rwnVuJ5MlgTteC105sSEgfIEi2-CMVeyo7J9AAA",
+      "toleranceSeconds": 60,
+      "trustedKeyVersions": [
+        "1"
+      ]
     }
   ]
 }

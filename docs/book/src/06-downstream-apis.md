@@ -266,6 +266,8 @@ serviceType = "rest-api"
 The `x-mycelium-profile` value is a Base64-encoded, ZSTD-compressed JSON object. Use the
 [Python SDK](https://github.com/LepistaBioinformatics/mycelium-sdk-py) or decode it manually
 to read tenant memberships, roles, and access scopes.
+Grants the user holds on linked peer instances travel apart, under `federatedResources`; the SDK
+filters ignore them unless asked (see [Federated Grants](./29-federated-grants.md#in-the-profile)).
 
 Every request that carries `x-mycelium-profile` also carries `x-mycelium-profile-signature`, which lets your service prove
 the profile came from the gateway. See [Downstream Profile Signature](./27-downstream-profile-signature.md).

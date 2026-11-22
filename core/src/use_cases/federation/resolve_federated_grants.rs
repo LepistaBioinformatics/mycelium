@@ -1,9 +1,11 @@
-use super::{refresh_peer_grants, ResolutionLimits, ResolutionPorts};
+use super::{
+    peer_excluded_from_assertions::excluded, refresh_peer_grants,
+    ResolutionLimits, ResolutionPorts,
+};
 use crate::domain::dtos::{
     federation::{
         FederatedGrants, FederatedResolution, FederationPeer, IdentityLink,
         LinkStatus, PeerOutcome, PeerResolution, PeerStatus, StoredAssertion,
-        PROFILE_ASSERTION_KIND,
     },
     written_by::WrittenBy,
 };
@@ -116,26 +118,6 @@ async fn step_for(
     }
 }
 
-/// Why the peer must never contribute, if it must not: an operator or
-/// handshake decision, or nothing negotiated or allowed to assert
-fn excluded(peer: &FederationPeer) -> Option<String> {
-    if matches!(peer.status, PeerStatus::Quarantined | PeerStatus::Untrusted) {
-        return Some(format!("peer is {}", peer.status.as_str()));
-    }
-    if !peer
-        .negotiated_kinds
-        .iter()
-        .any(|kind| kind == PROFILE_ASSERTION_KIND)
-    {
-        return Some(format!("{PROFILE_ASSERTION_KIND} not negotiated"));
-    }
-    if !peer.policy.may_assert {
-        return Some("peer policy does not allow assertions".to_string());
-    }
-
-    None
-}
-
 /// A peer that must not be called now serves its unexpired assertion as
 /// stale (FED-17), or nothing (FED-18)
 fn circuit_open(
@@ -187,6 +169,7 @@ fn skipped_unknown_peer(link: &IdentityLink) -> PeerOutcome {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::dtos::federation::PROFILE_ASSERTION_KIND;
     use crate::{
         domain::dtos::{
             federation::{

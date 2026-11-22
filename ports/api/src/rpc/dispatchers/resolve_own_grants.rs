@@ -3,7 +3,7 @@ use super::{
     federation::to_result,
 };
 use crate::{
-    federation::PreparedFederation,
+    federation::{resolution_limits, resolution_ports, PreparedFederation},
     models::active_backend_modules::SqlAppModule,
 };
 
@@ -16,14 +16,9 @@ use myc_core::{
         },
         entities::PeerGrantResolver,
     },
-    use_cases::federation::{
-        resolve_own_federated_grants, ResolutionGuardPorts, ResolutionLimits,
-        ResolutionPeerPorts, ResolutionPorts, ResolutionStorePorts,
-    },
+    use_cases::federation::resolve_own_federated_grants,
 };
 use mycelium_base::utils::errors::execution_err;
-use shaku::HasComponent;
-use std::time::Duration;
 
 /// Resolve the caller's grants on the peers they linked, on demand; a local
 /// denial wins (FED-19)
@@ -48,43 +43,9 @@ pub(super) async fn resolve_own_grants(
             profile,
             owner.id,
             &author,
-            limits_of(prepared),
-            &ports(app_module, resolver.get_ref()),
+            resolution_limits(prepared),
+            &resolution_ports(app_module, resolver.get_ref()),
         )
         .await,
     )
-}
-
-fn ports<'a>(
-    app_module: &'a SqlAppModule,
-    resolver: &'a dyn PeerGrantResolver,
-) -> ResolutionPorts<'a> {
-    ResolutionPorts {
-        links: app_module.resolve_ref(),
-        peers: ResolutionPeerPorts {
-            read: app_module.resolve_ref(),
-            write: app_module.resolve_ref(),
-            resolver,
-        },
-        store: ResolutionStorePorts {
-            read: app_module.resolve_ref(),
-            write: app_module.resolve_ref(),
-        },
-        guard: ResolutionGuardPorts {
-            probe: app_module.resolve_ref(),
-            claims: app_module.resolve_ref(),
-        },
-        audit: app_module.resolve_ref(),
-    }
-}
-
-fn limits_of(prepared: &PreparedFederation) -> ResolutionLimits {
-    ResolutionLimits {
-        deadline: Duration::from_millis(prepared.config.resolve_deadline_ms),
-        max_failures_before_open: prepared.config.max_failures_before_open,
-        assertion_ttl: Duration::from_secs(prepared.config.assertion_ttl_secs),
-        assertion_refresh: Duration::from_secs(
-            prepared.config.assertion_refresh_secs,
-        ),
-    }
 }

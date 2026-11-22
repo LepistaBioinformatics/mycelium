@@ -10,7 +10,9 @@
 # pages is federation-link-e2e.sh). Proves, over HTTP:
 #
 #   1. `beginners.federation.resolveGrants` refuses anonymous calls, asks A
-#      and returns user-01's grant on A, verified, stored and audited;
+#      and returns user-01's grant on A, verified, stored and audited; B's
+#      profile then carries it under `federatedResources`, with A as issuer,
+#      never under `licensedResources`;
 #   2. the next call is served from the store, without asking A; once the
 #      stored assertion is older than assertionRefreshSecs, A is asked again;
 #   3. a reference A has no active link for is answered "unknown";
@@ -20,7 +22,7 @@
 #   6. with user-01's account deactivated on B, no grant and no call: a local
 #      denial wins;
 #   7. user-01's grant revoked on A pushes a tombstone: B drops the stored
-#      assertion within seconds, and the next answer carries no grant; a
+#      assertion within seconds and its profile no longer carries the grant, and the next answer carries no grant; a
 #      subject A denies (account inactive there) is answered "unknown";
 #   8. with B down during the push, A keeps retrying; B drops its stored
 #      assertions before it serves and receives the tombstone after;
@@ -92,6 +94,9 @@ seed_link() {
 }
 
 resolve() { rpc "$BASE_B" "$1" beginners.federation.resolveGrants '{}'; }
+
+# profile_b: user-01's profile on B, as the gateway assembles it per request
+profile_b() { rpc "$BASE_B" "$TOKEN_B" beginners.profile.get '{"withUrl":false}'; }
 
 # age_assertions <seconds>: make the stored assertions that old
 age_assertions() { sql fed_b "update federation_assertion_cache set iat = now() - interval '$1 seconds'" >/dev/null; }
@@ -209,6 +214,12 @@ expect "A's tenant is claimed for A" 1 \
     "$(sql fed_b "select count(*) from federation_namespace_claim c join federation_peer p on p.id = c.peer_id
                   where c.foreign_id = '$TENANT_A' and p.instance_id = '$ID_A'")"
 expect "the call is audited" 1 "$(audited 1)"
+PROFILE="$(profile_b)"
+expect "B's profile carries A's grant apart" "$ID_A" "$(field result.federatedResources.0.issuer <<<"$PROFILE")"
+expect "under A's tenant" "$TENANT_A" "$(field result.federatedResources.0.tenantId <<<"$PROFILE")"
+expect "never as a local grant" 0 \
+    "$(field result.licensedResources <<<"$PROFILE" | grep -c "$TENANT_A" || true)"
+expect "reading the profile calls no peer" 1 "$(audited 1)"
 
 log "2. the next call reads the store, until the assertion is due"
 expect "served from the store" stored "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
@@ -253,6 +264,7 @@ revoke_grant_on_a
 expect "the grant is revoked on A" 0 "$(sql fed_a "select count(*) from licensed_resources where gu_email = 'user-01@example.com' and tenant_id = '$TENANT_A'")"
 expect "B drops the stored assertion" 0 "$(sql_within 0 fed_b "select count(*) from federation_assertion_cache")"
 expect "B records the tombstone" grantsChanged "$(sql fed_b "select reason from federation_tombstone")"
+expect "B's profile no longer carries the grant" None "$(profile_b | field result.federatedResources)"
 expect "A's outbox is drained" 0 "$(sql_within 0 fed_a "select count(*) from federation_outbox")"
 sleep 1.1
 REVOKED="$(resolve "$TOKEN_B")"

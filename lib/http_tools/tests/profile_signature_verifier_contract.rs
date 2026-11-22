@@ -92,7 +92,7 @@ fn outcome(corpus: &Corpus, vector: &Vector) -> String {
 #[test]
 fn every_contract_vector_has_the_expected_outcome() {
     let corpus: Corpus = serde_json::from_str(VECTORS).unwrap();
-    assert_eq!(corpus.vectors.len(), 46);
+    assert_eq!(corpus.vectors.len(), 47);
 
     let mismatches: Vec<String> = corpus
         .vectors

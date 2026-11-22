@@ -1,8 +1,11 @@
+mod attach_federated_grants;
 mod build_peer_client;
 mod describe_this_instance;
 mod issue_profile_assertion;
 mod link_login_client;
 mod prepare_federation;
+mod refresh_throttle;
+mod resolution_wiring;
 mod role_catalog_published;
 mod signed_peer_grant_resolver;
 mod signed_peer_link_notifier;
@@ -10,11 +13,14 @@ mod signed_peer_poster;
 mod signed_peer_tombstone_sender;
 mod verify_peer_assertion;
 
+pub(crate) use attach_federated_grants::*;
 pub(crate) use build_peer_client::*;
 pub(crate) use describe_this_instance::*;
 pub(crate) use issue_profile_assertion::*;
 pub(crate) use link_login_client::*;
 pub(crate) use prepare_federation::*;
+pub(crate) use refresh_throttle::*;
+pub(crate) use resolution_wiring::*;
 pub(crate) use role_catalog_published::*;
 pub(crate) use signed_peer_grant_resolver::*;
 pub(crate) use signed_peer_link_notifier::*;
