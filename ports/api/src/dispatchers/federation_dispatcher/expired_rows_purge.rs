@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use myc_core::domain::entities::{
-    LinkConsentRegistration, LinkRequestRegistration, RequestNonceRegistration,
+    AssertionStoreWrite, LinkConsentRegistration, LinkRequestRegistration,
+    RequestNonceRegistration,
 };
 use mycelium_base::utils::errors::MappedErrors;
 use std::sync::Arc;
@@ -24,6 +25,9 @@ pub(crate) struct LinkRequestPurge(pub(crate) Arc<dyn LinkRequestRegistration>);
 
 /// The issuer's pending link consents (FED-46)
 pub(crate) struct LinkConsentPurge(pub(crate) Arc<dyn LinkConsentRegistration>);
+
+/// The consumer's stored assertions past their `exp` (D-6)
+pub(crate) struct AssertionPurge(pub(crate) Arc<dyn AssertionStoreWrite>);
 
 #[async_trait]
 impl ExpiredRowsPurge for RequestNoncePurge {
@@ -51,6 +55,17 @@ impl ExpiredRowsPurge for LinkRequestPurge {
 impl ExpiredRowsPurge for LinkConsentPurge {
     fn rows(&self) -> &'static str {
         "link consents"
+    }
+
+    async fn purge_expired(&self) -> Result<u64, MappedErrors> {
+        self.0.purge_expired().await
+    }
+}
+
+#[async_trait]
+impl ExpiredRowsPurge for AssertionPurge {
+    fn rows(&self) -> &'static str {
+        "stored assertions"
     }
 
     async fn purge_expired(&self) -> Result<u64, MappedErrors> {

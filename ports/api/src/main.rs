@@ -77,8 +77,9 @@ use dispatchers::{
 };
 #[cfg(feature = "federation")]
 use dispatchers::{
-    spawn_federation_dispatcher, FederationDispatcher, FederationRoundPorts,
-    LinkConsentPurge, LinkRequestPurge, RequestNoncePurge,
+    spawn_federation_dispatcher, AssertionPurge, FederationDispatcher,
+    FederationRoundPorts, LinkConsentPurge, LinkRequestPurge,
+    RequestNoncePurge,
 };
 #[cfg(feature = "federation")]
 use federation::{
@@ -619,6 +620,7 @@ pub async fn main() -> std::io::Result<()> {
                         Arc::new(RequestNoncePurge(sql_module.resolve())),
                         Arc::new(LinkRequestPurge(sql_module.resolve())),
                         Arc::new(LinkConsentPurge(sql_module.resolve())),
+                        Arc::new(AssertionPurge(sql_module.resolve())),
                     ],
                     settings: sql_module.resolve(),
                     peer_client,
