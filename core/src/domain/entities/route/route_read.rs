@@ -7,8 +7,6 @@ use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
-use std::fmt::Result as FmResult;
-use std::fmt::{Debug, Display, Formatter};
 use uuid::Uuid;
 
 #[async_trait]
@@ -31,16 +29,4 @@ pub trait RoutesRead: Interface + Send + Sync {
         id: Option<Uuid>,
         name: Option<String>,
     ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
-}
-
-impl Display for dyn RoutesRead {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
-        write!(f, "{}", self)
-    }
-}
-
-impl Debug for dyn RoutesRead {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
-        write!(f, "{}", self)
-    }
 }
