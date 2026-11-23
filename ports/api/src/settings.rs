@@ -8,6 +8,10 @@ pub const ADMIN_API_SCOPE: &str = "_adm";
 /// The scope used to indicate tools routes
 pub const TOOLS_API_SCOPE: &str = "tools";
 
+/// Where the webapp build is served when `[api.webapp]` is set. Fixed: the
+/// webapp is built for this base path (`VITE_BASE_PATH=/_app/`).
+pub const WEBAPP_MOUNT_PATH: &str = "/_app";
+
 // ? ---------------------------------------------------------------------------
 // ? Health check
 // ? ---------------------------------------------------------------------------

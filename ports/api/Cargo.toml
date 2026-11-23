@@ -48,12 +48,17 @@ federation = ["dep:mycelium-federation-client"]
 
 rhai = ["dep:rhai"]
 
+# Serve the webapp build (`[api.webapp] distDir`) under /_app, so the gateway
+# alone serves the UI. Opt-in; works with every build mode.
+webapp = ["dep:actix-files"]
+
 # ? ----------------------------------------------------------------------------
 # ? DEPENDENCIES
 # ? ----------------------------------------------------------------------------
 
 [dependencies]
 
+actix-files = { workspace = true, optional = true }
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
 async-trait.workspace = true

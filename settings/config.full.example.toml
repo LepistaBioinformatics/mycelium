@@ -510,6 +510,24 @@ tls = "disabled"
 # here instead of relying on that default.
 # level = "mycelium_base=info,myc_api=info,myc_diesel=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_kv=info,myc_adapters_shared_lib=info"
 
+# ------------------------------------------------------------------------------
+# WEBAPP (optional, requires the `webapp` cargo feature)
+#
+# Serves the mycelium-webapp build under /_app/, so the gateway alone serves
+# the UI (no nginx, no CORS). Build the webapp for that base path and with no
+# API URL, so it calls this origin:
+#
+#   VITE_BASE_PATH=/_app/ yarn build
+#
+# Absent = /_app/* goes to the downstream router as any other path. Set
+# without the feature, or with a distDir that has no index.html, the gateway
+# refuses to start. hostedLoginClientId is published by GET /app-config; the
+# client must list <domainUrl>/_app/callback among its redirectUris.
+# ------------------------------------------------------------------------------
+# [api.webapp]
+# distDir = "/home/webapp"
+# hostedLoginClientId = "webapp-01"
+
 [api.logging]
 level = "mycelium_base=info,myc_api=info,myc_diesel=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_kv=info,myc_adapters_shared_lib=info"
 

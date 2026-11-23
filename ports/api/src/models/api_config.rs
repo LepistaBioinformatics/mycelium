@@ -10,6 +10,8 @@ use myc_core::domain::dtos::{
     service_notification_config::ServiceNotificationConfig,
 };
 use myc_core::models::ServiceNotificationsConfig;
+
+use super::webapp_config::WebappConfig;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::{
     de::{MapAccess, SeqAccess, Visitor},
@@ -365,6 +367,10 @@ pub struct ApiConfig {
     /// Overridable by env MYCELIUM_OPENRPC_PROD_URL.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub openrpc_prod_url: Option<String>,
+
+    /// The webapp build served under `/_app/` (`webapp` feature)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub webapp: Option<WebappConfig>,
 }
 
 fn default_service_ip() -> String {

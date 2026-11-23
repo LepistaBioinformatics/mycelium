@@ -357,6 +357,24 @@ allowedOrigins = ["http://localhost:8080"]
 # fields inside it are optional.
 # ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
+# WEBAPP (optional, requires the `webapp` cargo feature)
+#
+# Serves the mycelium-webapp build under /_app/, so the gateway alone serves
+# the UI (no nginx, no CORS). Build the webapp for that base path and with no
+# API URL, so it calls this origin:
+#
+#   VITE_BASE_PATH=/_app/ yarn build
+#
+# Absent = /_app/* goes to the downstream router as any other path. Set
+# without the feature, or with a distDir that has no index.html, the gateway
+# refuses to start. hostedLoginClientId is published by GET /app-config; the
+# client must list <domainUrl>/_app/callback among its redirectUris.
+# ------------------------------------------------------------------------------
+# [api.webapp]
+# distDir = "/home/webapp"
+# hostedLoginClientId = "webapp-01"
+
 [api.logging]
 
 # Per-module log level. Format: comma-separated `crate=level` pairs (or a
