@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(notifications)* Add the delivery plumbing for service emails
+- *(notifications)* Add dispatch storage, quota and the recipient policy
+- *(notifications)* Send service emails through the gateway
+- *(federation)* Audit federated resolutions
+- *(federation)* Grant translation table
+- *(error-codes)* Public listing and native codes without registration
+
+### 🐛 Bug Fixes
+
+- *(deps)* Move diesel to 2.4 to take the patched bundled SQLite
+- *(sqlite)* Set created on the tenant management account link
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### 🚀 Features
@@ -15,6 +31,10 @@ All notable changes to this project will be documented in this file.
 - *(magic-link)* Cap failed code attempts to stop brute force
 - *(auth)* Count hosted login email case variants as one address
 - *(guest)* Accept only the caller's own pending invitation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
 
 ## [9.0.1-beta.4] - 2026-10-14
 

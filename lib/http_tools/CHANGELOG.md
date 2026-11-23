@@ -2,11 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(http-tools)* Sign and verify the downstream profile signature
+- *(http-tools)* Verify downstream profile signatures with the gateway JWKS
+- *(notifications)* Add the foundation for downstream email notifications
+- *(profile-signing)* Merge develop and derive the signing keys from hmacSecrets
+- *(http-tools)* Sign and verify federation peer requests
+- *(federation)* Authenticate peer requests
+- *(federation)* Add the peer HTTP client
+- *(federation)* Accept peer handshakes
+- *(federation)* Publish the role catalog
+- *(federation)* Sign and verify the link state
+- *(federation)* Sign and verify assertions
+- *(federation)* Ask peers for grants
+- *(federation)* Queue, push and apply tombstones
+- *(profile)* Carry federated grants apart from local ones
+- *(federation)* Answer and read guest-role vocabularies
+
+### 🐛 Bug Fixes
+
+- *(deps)* Upgrade opentelemetry to 0.33 and utoipa to 6
+
+### 🚜 Refactor
+
+- *(http-tools)* Take the key-derivation label as a parameter
+- *(federation)* Make the assertion envelope payload-agnostic
+
+### 🧪 Testing
+
+- *(http-tools)* Add cross-language profile signature contract vectors
+- *(federation)* Two-instance trust end to end
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### 🚀 Features
 
 - *(auth)* Gateway-hosted email login with OAuth 2.0 code + PKCE
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
 
 ## [9.0.1-beta.4] - 2026-10-14
 

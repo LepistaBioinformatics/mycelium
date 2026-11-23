@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(cli)* Print the federation self-description
+- *(cli)* Declare federation peers
+- *(federation)* Publish the role catalog
+- *(cli)* Accept a peer's assertions when declaring it
+
+### 🐛 Bug Fixes
+
+- *(cli)* Supply the audit channel when federation describe builds the SQL module
+- *(cli)* Supply the audit channel when federation commands build the SQL module
+
+## [9.0.1-beta.5] - 2026-10-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
+
 ## [9.0.1-beta.4] - 2026-10-14
 
 ### ⚙️ Miscellaneous Tasks

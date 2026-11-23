@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(notifications)* Add the delivery plumbing for service emails
+
+## [9.0.1-beta.5] - 2026-10-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
+
 ## [9.0.1-beta.4] - 2026-10-14
 
 ### ⚙️ Miscellaneous Tasks

@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(notifications)* Add dispatch storage, quota and the recipient policy
+- *(notifications)* Send service emails through the gateway
+- *(diesel)* Implement instance settings updates and listing
+- *(diesel)* Add the federation trust tables
+- *(diesel)* Store federation peers
+- *(diesel)* Store seen federation request nonces
+- *(federation)* Identity link tables
+- *(federation)* Store identity links in Postgres
+- *(federation)* Store link requests and consents in Postgres
+- *(federation)* Assertion store and namespace claim tables
+- *(federation)* Store assertions in Postgres
+- *(federation)* Claim foreign ids in Postgres
+- *(federation)* Audit federated resolutions
+- *(federation)* Stale outcome and forgetting stored assertions
+- *(federation)* Tombstone and outbox tables
+- *(federation)* Revocation ports and their Postgres implementations
+- *(federation)* Grant translation table
+- *(federation)* Store grant translation rules
+- *(error-codes)* Public listing and native codes without registration
+
+### 🐛 Bug Fixes
+
+- *(deps)* Move diesel to 2.4 to take the patched bundled SQLite
+- *(federation)* Never let a handshake lift a quarantine
+- *(diesel)* Make the account soft delete persist
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### 🚀 Features
@@ -14,6 +44,10 @@ All notable changes to this project will be documented in this file.
 - Make the tenant list tag filter match tags
 - *(magic-link)* Cap failed code attempts to stop brute force
 - *(guest)* Accept only the caller's own pending invitation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
 
 ## [9.0.1-beta.4] - 2026-10-14
 
