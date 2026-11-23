@@ -3,8 +3,7 @@ use crate::{
     dtos::ServiceWrapper,
     openapi::ApiDoc,
     openapi_processor::{
-        load_operations_from_downstream_services::ServiceOpenApiSchema,
-        load_paths_from_spec,
+        load_paths_from_spec, service_openapi_schema::ServiceOpenApiSchema,
     },
 };
 
@@ -19,22 +18,18 @@ use mycelium_base::{
 };
 use mycelium_openapi::OpenApiSchema;
 use shaku::HasComponent;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 use tracing::Instrument;
 use utoipa::OpenApi;
 
-const MYCELIUM_SERVICE_NAME: &str = "mag";
+/// Service name under which the gateway lists its own operations
+pub(crate) const GATEWAY_CATALOG_SERVICE_NAME: &str = "mag";
 
 #[tracing::instrument(name = "initialize_tools_registry", skip_all)]
 pub(crate) async fn initialize_tools_registry(
     app_modules: Arc<MemDbAppModule>,
 ) -> Result<ServiceOpenApiSchema, MappedErrors> {
     let span = tracing::Span::current();
-
-    let mut service_operations = ServiceOpenApiSchema {
-        operations: Vec::new(),
-        docs: HashMap::new(),
-    };
 
     // -------------------------------------------------------------------------
     // Load downstream services
@@ -50,16 +45,10 @@ pub(crate) async fn initialize_tools_registry(
         _ => vec![],
     };
 
-    let downstream_operations =
+    let (mut operations, mut docs) =
         load_operations_from_downstream_services(services, app_modules.clone())
             .instrument(span)
             .await?;
-
-    service_operations
-        .operations
-        .extend(downstream_operations.operations);
-
-    service_operations.docs.extend(downstream_operations.docs);
 
     // -------------------------------------------------------------------------
     // Load mycelium operations
@@ -76,7 +65,7 @@ pub(crate) async fn initialize_tools_registry(
         OpenApiSchema::load_doc_from_string(&mycelium_openapi_schema)?;
 
     let service_wrapper = ServiceWrapper {
-        name: MYCELIUM_SERVICE_NAME.to_string(),
+        name: GATEWAY_CATALOG_SERVICE_NAME.to_string(),
         health_status: HealthStatus::Healthy {
             checked_at: Local::now(),
         },
@@ -97,10 +86,8 @@ pub(crate) async fn initialize_tools_registry(
     )
     .await?;
 
-    service_operations.operations.extend(mycelium_operations);
-    service_operations
-        .docs
-        .insert(MYCELIUM_SERVICE_NAME.to_string(), mycelium_docs);
+    operations.extend(mycelium_operations);
+    docs.insert(GATEWAY_CATALOG_SERVICE_NAME.to_string(), mycelium_docs);
 
-    Ok(service_operations)
+    ServiceOpenApiSchema::new(operations, docs)
 }

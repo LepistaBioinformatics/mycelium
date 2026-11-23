@@ -5,7 +5,10 @@ use super::super::{
     response_kind::fetch_many_response_kind_to_result,
     types::{self, JsonRpcError},
 };
-use crate::{dtos::MyceliumProfileData, openapi_processor::list_operations};
+use crate::{
+    dtos::MyceliumProfileData,
+    openapi_processor::{list_operations, OperationFilters},
+};
 
 use actix_web::web;
 use myc_core::use_cases::role_scoped::gateway_manager::{
@@ -64,11 +67,15 @@ pub async fn dispatch_gateway_manager(
                 .transpose()
                 .map_err(|e| invalid_params(e.to_string()))?
                 .unwrap_or_default();
+            let filters = OperationFilters {
+                method: p.method,
+                query: p.query,
+                score_cutoff: p.score_cutoff,
+                exclude_gateway: p.exclude_gateway.unwrap_or(false),
+            };
             let result = list_operations(
                 profile.to_profile(),
-                p.query,
-                p.method,
-                p.score_cutoff,
+                filters,
                 p.page_size,
                 p.skip,
                 tools_schema.clone(),
