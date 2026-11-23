@@ -5,8 +5,9 @@ use crate::rest::{
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user,
-    http_secret, profile, resource_audit_log, route,
-    send_service_email_request, service as service_dtos, tag, tenant, token,
+    http_secret, issuable_notification_service, notification_issuance_options,
+    profile, resource_audit_log, route, send_service_email_request,
+    service as service_dtos, service_notification_config, tag, tenant, token,
     user, webhook,
 };
 use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
@@ -754,6 +755,10 @@ struct UsersManagerAccountApiDoc;
             tenant::TenantMetaKey,
             tenant::TenantStatus,
             token::PublicConnectionStringInfo,
+            token::NotificationScope,
+            notification_issuance_options::NotificationIssuanceOptions,
+            issuable_notification_service::IssuableNotificationService,
+            service_notification_config::RecipientPolicy,
             user::User,
             webhook::WebHook,
             webhook::WebHookTrigger,

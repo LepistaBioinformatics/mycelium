@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-22T23:41:32-03:00\n"
+"POT-Creation-Date: 2026-11-23T00:53:26-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -554,7 +554,7 @@ msgstr ""
 
 #: src/02-installation.md:111 src/03-quick-start.md:139
 #: src/05-deploy-locally.md:105 src/30-serving-the-webapp.md:139
-#: src/06-downstream-apis.md:418 src/10-alternative-idps.md:469
+#: src/06-downstream-apis.md:422 src/10-alternative-idps.md:469
 #: src/07-running-tests.md:73 src/08-release-process.md:313
 #: src/09-log-cache-tests.md:175
 msgid "Troubleshooting"
@@ -903,8 +903,8 @@ msgstr ""
 
 #: src/04-configuration.md:58 src/04-configuration.md:81
 #: src/04-configuration.md:103 src/04-configuration.md:184
-#: src/04-configuration.md:211 src/06-downstream-apis.md:436
-#: src/06-downstream-apis.md:451 src/12-response-callbacks.md:165
+#: src/04-configuration.md:211 src/06-downstream-apis.md:440
+#: src/06-downstream-apis.md:455 src/12-response-callbacks.md:165
 #: src/12-response-callbacks.md:187 src/20-encryption-inventory.md:16
 #: src/20-encryption-inventory.md:49
 msgid "Field"
@@ -913,19 +913,19 @@ msgstr "Campo"
 #: src/04-configuration.md:58 src/04-configuration.md:81
 #: src/04-configuration.md:103 src/04-configuration.md:184
 #: src/04-configuration.md:211 src/06-downstream-apis.md:187
-#: src/06-downstream-apis.md:436 src/06-downstream-apis.md:451
+#: src/06-downstream-apis.md:440 src/06-downstream-apis.md:455
 #: src/12-response-callbacks.md:165 src/12-response-callbacks.md:187
 #: src/16-webhooks.md:98 src/17-error-codes.md:95 src/17-error-codes.md:109
 #: src/14-json-rpc.md:64 src/14-json-rpc.md:80 src/14-json-rpc.md:92
 #: src/14-json-rpc.md:106 src/14-json-rpc.md:115 src/14-json-rpc.md:121
-#: src/14-json-rpc.md:127 src/14-json-rpc.md:133 src/14-json-rpc.md:143
-#: src/14-json-rpc.md:151 src/14-json-rpc.md:169 src/14-json-rpc.md:187
-#: src/14-json-rpc.md:197 src/14-json-rpc.md:212 src/14-json-rpc.md:223
-#: src/14-json-rpc.md:233 src/14-json-rpc.md:240 src/14-json-rpc.md:254
-#: src/14-json-rpc.md:261 src/14-json-rpc.md:268 src/14-json-rpc.md:276
-#: src/14-json-rpc.md:288 src/14-json-rpc.md:295 src/14-json-rpc.md:302
-#: src/14-json-rpc.md:309 src/14-json-rpc.md:322 src/14-json-rpc.md:337
-#: src/14-json-rpc.md:347 src/18-cli.md:52 src/20-encryption-inventory.md:34
+#: src/14-json-rpc.md:127 src/14-json-rpc.md:133 src/14-json-rpc.md:144
+#: src/14-json-rpc.md:152 src/14-json-rpc.md:170 src/14-json-rpc.md:188
+#: src/14-json-rpc.md:198 src/14-json-rpc.md:213 src/14-json-rpc.md:224
+#: src/14-json-rpc.md:234 src/14-json-rpc.md:241 src/14-json-rpc.md:255
+#: src/14-json-rpc.md:262 src/14-json-rpc.md:269 src/14-json-rpc.md:277
+#: src/14-json-rpc.md:289 src/14-json-rpc.md:296 src/14-json-rpc.md:303
+#: src/14-json-rpc.md:310 src/14-json-rpc.md:323 src/14-json-rpc.md:338
+#: src/14-json-rpc.md:348 src/18-cli.md:52 src/20-encryption-inventory.md:34
 #: src/08-release-process.md:196
 msgid "Description"
 msgstr "Descrição"
@@ -4541,19 +4541,19 @@ msgid "What headers does my service receive?"
 msgstr "Quais cabeçalhos meu serviço recebe?"
 
 #: src/06-downstream-apis.md:262 src/06-downstream-apis.md:263
-#: src/06-downstream-apis.md:264 src/06-downstream-apis.md:440
-#: src/06-downstream-apis.md:453 src/06-downstream-apis.md:454
-#: src/06-downstream-apis.md:455 src/12-response-callbacks.md:189
+#: src/06-downstream-apis.md:264 src/06-downstream-apis.md:444
+#: src/06-downstream-apis.md:457 src/06-downstream-apis.md:458
+#: src/06-downstream-apis.md:459 src/12-response-callbacks.md:189
 #: src/12-response-callbacks.md:190
 msgid "Yes"
 msgstr ""
 
-#: src/06-downstream-apis.md:262 src/06-downstream-apis.md:442
-#: src/06-downstream-apis.md:443 src/06-downstream-apis.md:444
-#: src/06-downstream-apis.md:445 src/06-downstream-apis.md:446
-#: src/06-downstream-apis.md:447 src/06-downstream-apis.md:456
-#: src/06-downstream-apis.md:457 src/06-downstream-apis.md:458
-#: src/06-downstream-apis.md:459 src/12-response-callbacks.md:191
+#: src/06-downstream-apis.md:262 src/06-downstream-apis.md:446
+#: src/06-downstream-apis.md:447 src/06-downstream-apis.md:448
+#: src/06-downstream-apis.md:449 src/06-downstream-apis.md:450
+#: src/06-downstream-apis.md:451 src/06-downstream-apis.md:460
+#: src/06-downstream-apis.md:461 src/06-downstream-apis.md:462
+#: src/06-downstream-apis.md:463 src/12-response-callbacks.md:191
 #: src/12-response-callbacks.md:192 src/12-response-callbacks.md:193
 #: src/12-response-callbacks.md:200 src/12-response-callbacks.md:201
 #: src/12-response-callbacks.md:202
@@ -4699,71 +4699,82 @@ msgstr ""
 
 #: src/06-downstream-apis.md:365
 msgid ""
+"`beginners.tokens.listNotificationServices` returns the services the caller "
+"can issue for, the tenants each string can be bound to and the instance "
+"`maxConnectionStringTtlInDays`, so a UI can offer only valid choices."
+msgstr ""
+"`beginners.tokens.listNotificationServices` retorna os serviços para os "
+"quais quem chama pode emitir strings, os tenants a que cada string pode ser "
+"vinculada e o `maxConnectionStringTtlInDays` da instância, para que uma "
+"interface ofereça apenas opções válidas."
+
+#: src/06-downstream-apis.md:369
+msgid ""
 "**Sending.** The service calls `POST /_adm/notifications/email` with the "
 "string in the `x-mycelium-connection-string` header:"
 msgstr ""
 
-#: src/06-downstream-apis.md:369
+#: src/06-downstream-apis.md:373
 msgid "\"to\""
 msgstr ""
 
-#: src/06-downstream-apis.md:369
+#: src/06-downstream-apis.md:373
 msgid "\"user@example.com\""
 msgstr ""
 
-#: src/06-downstream-apis.md:369
+#: src/06-downstream-apis.md:373
 msgid "\"template\""
 msgstr ""
 
-#: src/06-downstream-apis.md:369
+#: src/06-downstream-apis.md:373
 msgid "\"welcome\""
 msgstr ""
 
-#: src/06-downstream-apis.md:369
+#: src/06-downstream-apis.md:373
 #, fuzzy
 msgid "\"variables\""
 msgstr "Variável"
 
-#: src/06-downstream-apis.md:369 src/16-webhooks.md:121
+#: src/06-downstream-apis.md:373 src/16-webhooks.md:121
 msgid "\"name\""
 msgstr ""
 
-#: src/06-downstream-apis.md:369
+#: src/06-downstream-apis.md:373
 msgid "\"Ana\""
 msgstr ""
 
-#: src/06-downstream-apis.md:369
+#: src/06-downstream-apis.md:373
 #, fuzzy
 msgid "\"locale\""
 msgstr "`locale`"
 
-#: src/06-downstream-apis.md:369
+#: src/06-downstream-apis.md:373
 msgid "\"pt-br\""
 msgstr ""
 
-#: src/06-downstream-apis.md:372
+#: src/06-downstream-apis.md:376
 msgid ""
 "The body accepts only these four fields. The service cannot choose the "
 "sender, the reply address, the subject, headers or raw HTML."
 msgstr ""
 
-#: src/06-downstream-apis.md:374
+#: src/06-downstream-apis.md:378
 msgid ""
 "`variables` holds strings, numbers and booleans only, at most 8192 bytes as "
 "compact JSON."
 msgstr ""
 
-#: src/06-downstream-apis.md:376
+#: src/06-downstream-apis.md:380
 msgid "Each `to` entry must be one bare address."
 msgstr ""
 
-#: src/06-downstream-apis.md:377
+#: src/06-downstream-apis.md:381
 msgid ""
 "The gateway re-checks the string creator on every send. If the account was "
 "deactivated, the role revoked or the service disabled, the send is refused."
 msgstr ""
 
-#: src/06-downstream-apis.md:379
+#: src/06-downstream-apis.md:383
 msgid ""
 "Answers: `202` with one message id per recipient; `401` for a missing, "
 "tampered, expired, revoked or general string; `403` for a disabled service, "
@@ -4771,25 +4782,25 @@ msgid ""
 "invalid body; `429` with `Retry-After` when the hourly quota is spent."
 msgstr ""
 
-#: src/06-downstream-apis.md:384
+#: src/06-downstream-apis.md:388
 msgid ""
 "**The connection string is a long-lived secret.** Store it like a password "
 "and never log it."
 msgstr ""
 
-#: src/06-downstream-apis.md:387
+#: src/06-downstream-apis.md:391
 #, fuzzy
 msgid "Operator notes"
 msgstr "Operação"
 
-#: src/06-downstream-apis.md:389
+#: src/06-downstream-apis.md:393
 msgid ""
 "**Rollout gate.** Add the first `notifications` block only after every "
 "gateway pod runs a version that supports it. Older pods answer `401` to "
 "notification strings while the rollout is in progress."
 msgstr ""
 
-#: src/06-downstream-apis.md:392
+#: src/06-downstream-apis.md:396
 msgid ""
 "**Rollback rule.** Before you roll back to a version without this feature, "
 "delete every notification connection string. An older binary cannot read "
@@ -4797,7 +4808,7 @@ msgid ""
 "them."
 msgstr ""
 
-#: src/06-downstream-apis.md:396
+#: src/06-downstream-apis.md:400
 msgid ""
 "**Sender tag mode.** `header` (the default) sends from `noreplyEmail` "
 "unchanged and carries the service in the `X-Mycelium-Source-Service` header. "
@@ -4806,7 +4817,7 @@ msgid ""
 "provider accepts those senders:"
 msgstr ""
 
-#: src/06-downstream-apis.md:401
+#: src/06-downstream-apis.md:405
 msgid ""
 "**Google SMTP** (`smtp.gmail.com`) rejects or rewrites a `From` that is not "
 "the authenticated account or a configured \"send as\" alias. Each `+tag` "
@@ -4814,28 +4825,28 @@ msgid ""
 "configured for the domain."
 msgstr ""
 
-#: src/06-downstream-apis.md:405
+#: src/06-downstream-apis.md:409
 msgid ""
 "**Azure Communication Services Email** accepts only `MailFrom` usernames "
 "registered on the verified domain, so each `<noreply>+<tag>` must be "
 "registered."
 msgstr ""
 
-#: src/06-downstream-apis.md:409
+#: src/06-downstream-apis.md:413
 msgid ""
 "Neither provider has been tested with `plus`. When in doubt, keep `header`: "
 "the display name and the `X-Mycelium-*` headers carry the attribution in "
 "both modes."
 msgstr ""
 
-#: src/06-downstream-apis.md:412
+#: src/06-downstream-apis.md:416
 msgid ""
 "**Retention.** The dispatch trace (`notification_dispatch`) records who sent "
 "what to whom, without the template variables. Rows older than "
 "`retentionDays` are purged at most once an hour."
 msgstr ""
 
-#: src/06-downstream-apis.md:420
+#: src/06-downstream-apis.md:424
 msgid ""
 "**Route not matching** — Check that the path has a wildcard (`/api/*`) if "
 "you want to match subpaths. `/api/` only matches that exact path."
@@ -4844,7 +4855,7 @@ msgstr ""
 "curinga (`/api/*`) se deseja corresponder subcaminhos. `/api/` corresponde "
 "apenas a esse caminho exato."
 
-#: src/06-downstream-apis.md:423
+#: src/06-downstream-apis.md:427
 msgid ""
 "**401 on a protected route** — The JWT or connection string is missing, "
 "expired, or invalid. Check the `Authorization: Bearer <token>` or `x-"
@@ -4854,7 +4865,7 @@ msgstr ""
 "expirado ou inválido. Verifique o cabeçalho `Authorization: Bearer <token>` "
 "ou `x-mycelium-connection-string`."
 
-#: src/06-downstream-apis.md:426
+#: src/06-downstream-apis.md:430
 msgid ""
 "**403 on a role-protected route** — The user is authenticated but doesn't "
 "have the required role. Check role assignment in the Mycelium admin panel."
@@ -4863,7 +4874,7 @@ msgstr ""
 "não possui o papel necessário. Verifique a atribuição de papéis no painel de "
 "administração do Mycelium."
 
-#: src/06-downstream-apis.md:429
+#: src/06-downstream-apis.md:433
 msgid ""
 "**Downstream unreachable** — Verify `host`, `protocol`, and that the service "
 "is actually running. Use `acceptInsecureRouting = true` on the route if the "
@@ -4873,164 +4884,164 @@ msgstr ""
 "está realmente em execução. Use `acceptInsecureRouting = true` na rota se o "
 "downstream usar um certificado TLS autoassinado."
 
-#: src/06-downstream-apis.md:434
+#: src/06-downstream-apis.md:438
 msgid "Reference — service-level fields"
 msgstr "Referência — campos de nível de serviço"
 
-#: src/06-downstream-apis.md:436 src/06-downstream-apis.md:451
+#: src/06-downstream-apis.md:440 src/06-downstream-apis.md:455
 #: src/12-response-callbacks.md:187
 msgid "Required"
 msgstr "Obrigatório"
 
-#: src/06-downstream-apis.md:438
+#: src/06-downstream-apis.md:442
 msgid "`host`"
 msgstr ""
 
-#: src/06-downstream-apis.md:438
+#: src/06-downstream-apis.md:442
 msgid "Yes (or `hosts`)"
 msgstr "Sim (ou `hosts`)"
 
-#: src/06-downstream-apis.md:438
+#: src/06-downstream-apis.md:442
 msgid "Single downstream host with port"
 msgstr "Host downstream único com porta"
 
-#: src/06-downstream-apis.md:439
+#: src/06-downstream-apis.md:443
 msgid "`hosts`"
 msgstr ""
 
-#: src/06-downstream-apis.md:439
+#: src/06-downstream-apis.md:443
 msgid "Yes (or `host`)"
 msgstr "Sim (ou `host`)"
 
-#: src/06-downstream-apis.md:439
+#: src/06-downstream-apis.md:443
 msgid "Multiple hosts for load balancing"
 msgstr "Múltiplos hosts para balanceamento de carga"
 
-#: src/06-downstream-apis.md:440
+#: src/06-downstream-apis.md:444
 msgid "`protocol`"
 msgstr ""
 
-#: src/06-downstream-apis.md:440
+#: src/06-downstream-apis.md:444
 msgid "`\"http\"` or `\"https\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:441
+#: src/06-downstream-apis.md:445
 msgid "`allowedSources`"
 msgstr ""
 
-#: src/06-downstream-apis.md:441
+#: src/06-downstream-apis.md:445
 msgid "Required when `identitySource` is set"
 msgstr "Obrigatório quando `identitySource` está definido"
 
-#: src/06-downstream-apis.md:441
+#: src/06-downstream-apis.md:445
 msgid "Allowed `Host` headers (supports wildcards)"
 msgstr "Cabeçalhos `Host` permitidos (suporta curingas)"
 
-#: src/06-downstream-apis.md:442
+#: src/06-downstream-apis.md:446
 msgid "`discoverable`"
 msgstr ""
 
-#: src/06-downstream-apis.md:442
+#: src/06-downstream-apis.md:446
 msgid "Expose service to AI agents"
 msgstr "Expor serviço a agentes de IA"
 
-#: src/06-downstream-apis.md:443
+#: src/06-downstream-apis.md:447
 msgid "`description`"
 msgstr ""
 
-#: src/06-downstream-apis.md:443
+#: src/06-downstream-apis.md:447
 msgid "Human-readable description"
 msgstr "Descrição legível por humanos"
 
-#: src/06-downstream-apis.md:444
+#: src/06-downstream-apis.md:448
 msgid "`openapiPath`"
 msgstr ""
 
-#: src/06-downstream-apis.md:444
+#: src/06-downstream-apis.md:448
 msgid "Path to OpenAPI spec"
 msgstr "Caminho para a especificação OpenAPI"
 
-#: src/06-downstream-apis.md:445
+#: src/06-downstream-apis.md:449
 msgid "`healthCheckPath`"
 msgstr ""
 
-#: src/06-downstream-apis.md:445
+#: src/06-downstream-apis.md:449
 msgid "Health check endpoint"
 msgstr "Endpoint de health check"
 
-#: src/06-downstream-apis.md:446
+#: src/06-downstream-apis.md:450
 msgid "`capabilities`"
 msgstr ""
 
-#: src/06-downstream-apis.md:446
+#: src/06-downstream-apis.md:450
 msgid "Array of capability tags"
 msgstr "Array de tags de capacidade"
 
-#: src/06-downstream-apis.md:447
+#: src/06-downstream-apis.md:451
 msgid "`serviceType`"
 msgstr ""
 
-#: src/06-downstream-apis.md:447
+#: src/06-downstream-apis.md:451
 msgid "e.g. `\"rest-api\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:449
+#: src/06-downstream-apis.md:453
 msgid "Reference — route-level fields"
 msgstr "Referência — campos de nível de rota"
 
-#: src/06-downstream-apis.md:453
+#: src/06-downstream-apis.md:457
 msgid "`group`"
 msgstr ""
 
-#: src/06-downstream-apis.md:453
+#: src/06-downstream-apis.md:457
 msgid "Security group (see above)"
 msgstr "Grupo de segurança (ver acima)"
 
-#: src/06-downstream-apis.md:454
+#: src/06-downstream-apis.md:458
 msgid "`path`"
 msgstr ""
 
-#: src/06-downstream-apis.md:454
+#: src/06-downstream-apis.md:458
 msgid "URL path pattern, supports wildcards"
 msgstr "Padrão de caminho URL, suporta curingas"
 
-#: src/06-downstream-apis.md:455
+#: src/06-downstream-apis.md:459
 msgid "`methods`"
 msgstr ""
 
-#: src/06-downstream-apis.md:455
+#: src/06-downstream-apis.md:459
 msgid "HTTP methods, or `[\"ALL\"]`"
 msgstr ""
 
-#: src/06-downstream-apis.md:456
+#: src/06-downstream-apis.md:460
 msgid "`secretName`"
 msgstr ""
 
-#: src/06-downstream-apis.md:456
+#: src/06-downstream-apis.md:460
 msgid "Reference to a secret defined at service level"
 msgstr "Referência a um segredo definido no nível de serviço"
 
-#: src/06-downstream-apis.md:457
+#: src/06-downstream-apis.md:461
 msgid "`identitySource`"
 msgstr ""
 
-#: src/06-downstream-apis.md:457
+#: src/06-downstream-apis.md:461
 msgid "Body-based IdP. Currently: `\"telegram\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:458
+#: src/06-downstream-apis.md:462
 msgid "`acceptInsecureRouting`"
 msgstr ""
 
-#: src/06-downstream-apis.md:458
+#: src/06-downstream-apis.md:462
 msgid "Allow self-signed TLS certs on downstream"
 msgstr "Permitir certificados TLS autoassinados no downstream"
 
-#: src/06-downstream-apis.md:459
+#: src/06-downstream-apis.md:463
 msgid "`retry`"
 msgstr ""
 
-#: src/06-downstream-apis.md:459
+#: src/06-downstream-apis.md:463
 msgid "Retry policy for transient failures (see above)"
 msgstr ""
 
@@ -5398,7 +5409,7 @@ msgstr "Variável"
 
 #: src/27-downstream-profile-signature.md:140 src/28-identity-linking.md:91
 #: src/29-federated-grants.md:42 src/29-federated-grants.md:246
-#: src/17-error-codes.md:41 src/14-json-rpc.md:371
+#: src/17-error-codes.md:41 src/14-json-rpc.md:372
 #: src/22-hmac-key-rotation.md:122
 msgid "Meaning"
 msgstr "Significado"
@@ -6223,13 +6234,13 @@ msgstr ""
 #: src/29-federated-grants.md:237 src/14-json-rpc.md:64 src/14-json-rpc.md:80
 #: src/14-json-rpc.md:92 src/14-json-rpc.md:106 src/14-json-rpc.md:115
 #: src/14-json-rpc.md:121 src/14-json-rpc.md:127 src/14-json-rpc.md:133
-#: src/14-json-rpc.md:143 src/14-json-rpc.md:151 src/14-json-rpc.md:169
-#: src/14-json-rpc.md:187 src/14-json-rpc.md:197 src/14-json-rpc.md:212
-#: src/14-json-rpc.md:223 src/14-json-rpc.md:233 src/14-json-rpc.md:240
-#: src/14-json-rpc.md:254 src/14-json-rpc.md:261 src/14-json-rpc.md:268
-#: src/14-json-rpc.md:276 src/14-json-rpc.md:288 src/14-json-rpc.md:295
-#: src/14-json-rpc.md:302 src/14-json-rpc.md:309 src/14-json-rpc.md:322
-#: src/14-json-rpc.md:337 src/14-json-rpc.md:347 src/19-sdk.md:89
+#: src/14-json-rpc.md:144 src/14-json-rpc.md:152 src/14-json-rpc.md:170
+#: src/14-json-rpc.md:188 src/14-json-rpc.md:198 src/14-json-rpc.md:213
+#: src/14-json-rpc.md:224 src/14-json-rpc.md:234 src/14-json-rpc.md:241
+#: src/14-json-rpc.md:255 src/14-json-rpc.md:262 src/14-json-rpc.md:269
+#: src/14-json-rpc.md:277 src/14-json-rpc.md:289 src/14-json-rpc.md:296
+#: src/14-json-rpc.md:303 src/14-json-rpc.md:310 src/14-json-rpc.md:323
+#: src/14-json-rpc.md:338 src/14-json-rpc.md:348 src/19-sdk.md:89
 msgid "Method"
 msgstr "Método"
 
@@ -8772,13 +8783,13 @@ msgstr "Via JSON-RPC"
 
 #: src/16-webhooks.md:56 src/17-error-codes.md:61 src/17-error-codes.md:76
 #: src/14-json-rpc.md:24 src/14-json-rpc.md:35 src/14-json-rpc.md:36
-#: src/14-json-rpc.md:50 src/14-json-rpc.md:360
+#: src/14-json-rpc.md:50 src/14-json-rpc.md:361
 msgid "\"jsonrpc\""
 msgstr ""
 
 #: src/16-webhooks.md:56 src/17-error-codes.md:61 src/17-error-codes.md:76
 #: src/14-json-rpc.md:24 src/14-json-rpc.md:35 src/14-json-rpc.md:36
-#: src/14-json-rpc.md:50 src/14-json-rpc.md:360
+#: src/14-json-rpc.md:50 src/14-json-rpc.md:361
 msgid "\"2.0\""
 msgstr ""
 
@@ -8820,7 +8831,7 @@ msgstr ""
 
 #: src/16-webhooks.md:63 src/17-error-codes.md:68 src/17-error-codes.md:79
 #: src/14-json-rpc.md:27 src/14-json-rpc.md:35 src/14-json-rpc.md:36
-#: src/14-json-rpc.md:50 src/14-json-rpc.md:365
+#: src/14-json-rpc.md:50 src/14-json-rpc.md:366
 msgid "\"id\""
 msgstr ""
 
@@ -8915,7 +8926,7 @@ msgstr "Método JSON-RPC"
 msgid "REST path"
 msgstr "Caminho REST"
 
-#: src/16-webhooks.md:100 src/14-json-rpc.md:199
+#: src/16-webhooks.md:100 src/14-json-rpc.md:200
 msgid "`systemManager.webhooks.create`"
 msgstr ""
 
@@ -8927,7 +8938,7 @@ msgstr ""
 msgid "Register a new webhook"
 msgstr "Registrar um novo webhook"
 
-#: src/16-webhooks.md:101 src/14-json-rpc.md:200
+#: src/16-webhooks.md:101 src/14-json-rpc.md:201
 msgid "`systemManager.webhooks.list`"
 msgstr ""
 
@@ -8935,11 +8946,11 @@ msgstr ""
 msgid "`GET /_adm/system-manager/webhooks`"
 msgstr ""
 
-#: src/16-webhooks.md:101 src/14-json-rpc.md:200
+#: src/16-webhooks.md:101 src/14-json-rpc.md:201
 msgid "List registered webhooks"
 msgstr "Listar webhooks registrados"
 
-#: src/16-webhooks.md:102 src/14-json-rpc.md:201
+#: src/16-webhooks.md:102 src/14-json-rpc.md:202
 msgid "`systemManager.webhooks.update`"
 msgstr ""
 
@@ -8951,7 +8962,7 @@ msgstr ""
 msgid "Update URL, trigger, or active status"
 msgstr "Atualizar URL, gatilho ou status ativo"
 
-#: src/16-webhooks.md:103 src/14-json-rpc.md:202
+#: src/16-webhooks.md:103 src/14-json-rpc.md:203
 msgid "`systemManager.webhooks.delete`"
 msgstr ""
 
@@ -9069,7 +9080,7 @@ msgstr ""
 "Quando um caso de uso retorna um erro de domínio com um código, o Mycelium "
 "inclui esse código no corpo da resposta HTTP:"
 
-#: src/17-error-codes.md:16 src/17-error-codes.md:65 src/14-json-rpc.md:363
+#: src/17-error-codes.md:16 src/17-error-codes.md:65 src/14-json-rpc.md:364
 msgid "\"message\""
 msgstr "\"message\""
 
@@ -9077,7 +9088,7 @@ msgstr "\"message\""
 msgid "\"Account not found.\""
 msgstr "\"Conta não encontrada.\""
 
-#: src/17-error-codes.md:17 src/17-error-codes.md:64 src/14-json-rpc.md:362
+#: src/17-error-codes.md:17 src/17-error-codes.md:64 src/14-json-rpc.md:363
 msgid "\"code\""
 msgstr "\"code\""
 
@@ -9112,7 +9123,12 @@ msgid ""
 "need no installation step: every listing and lookup serves them straight "
 "from the code, ahead of the custom codes stored in the database. Their "
 "message, details and `isInternal` flag always match the running version."
-msgstr "Os códigos de erro nativos são definidos no próprio gateway, então não precisam de nenhuma etapa de instalação: toda listagem e consulta os serve direto do código, antes dos códigos customizados guardados no banco. A mensagem, os detalhes e o campo `isInternal` sempre correspondem à versão em execução."
+msgstr ""
+"Os códigos de erro nativos são definidos no próprio gateway, então não "
+"precisam de nenhuma etapa de instalação: toda listagem e consulta os serve "
+"direto do código, antes dos códigos customizados guardados no banco. A "
+"mensagem, os detalhes e o campo `isInternal` sempre correspondem à versão em "
+"execução."
 
 #: src/17-error-codes.md:34
 msgid ""
@@ -9120,7 +9136,11 @@ msgid ""
 "the database, is no longer needed. Native rows it stored earlier are ignored "
 "by listings and lookups, so they can neither duplicate nor contradict the "
 "built-in definitions. See [CLI Reference](./18-cli.md)."
-msgstr "O comando de CLI `myc-cli native-errors init`, que antes os copiava para o banco, não é mais necessário. As linhas nativas que ele gravou antes são ignoradas pelas listagens e consultas, então não duplicam nem contradizem as definições embutidas. Veja a [Referência da CLI](./18-cli.md)."
+msgstr ""
+"O comando de CLI `myc-cli native-errors init`, que antes os copiava para o "
+"banco, não é mais necessário. As linhas nativas que ele gravou antes são "
+"ignoradas pelas listagens e consultas, então não duplicam nem contradizem as "
+"definições embutidas. Veja a [Referência da CLI](./18-cli.md)."
 
 #: src/17-error-codes.md:38
 msgid ""
@@ -9130,7 +9150,7 @@ msgstr ""
 "A assinatura de profile adiciona três códigos internos (veja [Assinatura de "
 "Profile Downstream](./27-downstream-profile-signature.md)):"
 
-#: src/17-error-codes.md:41 src/14-json-rpc.md:371
+#: src/17-error-codes.md:41 src/14-json-rpc.md:372
 #: src/22-hmac-key-rotation.md:122
 msgid "Code"
 msgstr "Código"
@@ -9201,7 +9221,7 @@ msgstr ""
 "`systemManager.errorCodes.*` ou pelas rotas REST equivalentes. Requer o "
 "papel **system-manager**."
 
-#: src/17-error-codes.md:57 src/14-json-rpc.md:189
+#: src/17-error-codes.md:57 src/14-json-rpc.md:190
 msgid "Create a custom error code"
 msgstr "Criar um código de erro personalizado"
 
@@ -9222,7 +9242,7 @@ msgid ""
 "\"The account has made more requests than allowed in the current window.\""
 msgstr "\"A conta fez mais requisições do que o permitido na janela atual.\""
 
-#: src/17-error-codes.md:72 src/14-json-rpc.md:190
+#: src/17-error-codes.md:72 src/14-json-rpc.md:191
 msgid "List all error codes"
 msgstr "Listar todos os códigos de erro"
 
@@ -9297,7 +9317,7 @@ msgstr ""
 msgid "Error code API reference"
 msgstr "Referência da API de códigos de erro"
 
-#: src/17-error-codes.md:111 src/14-json-rpc.md:189
+#: src/17-error-codes.md:111 src/14-json-rpc.md:190
 msgid "`systemManager.errorCodes.create`"
 msgstr "`systemManager.errorCodes.create`"
 
@@ -9305,7 +9325,7 @@ msgstr "`systemManager.errorCodes.create`"
 msgid "Register a new error code"
 msgstr "Registrar um novo código de erro"
 
-#: src/17-error-codes.md:112 src/14-json-rpc.md:190
+#: src/17-error-codes.md:112 src/14-json-rpc.md:191
 msgid "`systemManager.errorCodes.list`"
 msgstr "`systemManager.errorCodes.list`"
 
@@ -9313,7 +9333,7 @@ msgstr "`systemManager.errorCodes.list`"
 msgid "List all error codes (native + custom)"
 msgstr "Listar todos os códigos de erro (nativos + personalizados)"
 
-#: src/17-error-codes.md:113 src/14-json-rpc.md:191
+#: src/17-error-codes.md:113 src/14-json-rpc.md:192
 msgid "`systemManager.errorCodes.get`"
 msgstr "`systemManager.errorCodes.get`"
 
@@ -9321,7 +9341,7 @@ msgstr "`systemManager.errorCodes.get`"
 msgid "Get a single error code by code string"
 msgstr "Obter um único código de erro pela string do código"
 
-#: src/17-error-codes.md:114 src/14-json-rpc.md:192
+#: src/17-error-codes.md:114 src/14-json-rpc.md:193
 msgid "`systemManager.errorCodes.updateMessageAndDetails`"
 msgstr "`systemManager.errorCodes.updateMessageAndDetails`"
 
@@ -9329,7 +9349,7 @@ msgstr "`systemManager.errorCodes.updateMessageAndDetails`"
 msgid "Update an existing code's message and details"
 msgstr "Atualizar a mensagem e detalhes de um código existente"
 
-#: src/17-error-codes.md:115 src/14-json-rpc.md:193
+#: src/17-error-codes.md:115 src/14-json-rpc.md:194
 msgid "`systemManager.errorCodes.delete`"
 msgstr "`systemManager.errorCodes.delete`"
 
@@ -9342,7 +9362,10 @@ msgid ""
 "Native error codes (prefixed `MYC`) are read-only: updating or deleting them "
 "is refused (`MYC00018`), and custom codes cannot be registered under the "
 "`MYC` prefix."
-msgstr "Os códigos de erro nativos (prefixo `MYC`) são somente leitura: atualizá-los ou apagá-los é recusado (`MYC00018`), e não é possível registrar códigos customizados com o prefixo `MYC`."
+msgstr ""
+"Os códigos de erro nativos (prefixo `MYC`) são somente leitura: atualizá-los "
+"ou apagá-los é recusado (`MYC00018`), e não é possível registrar códigos "
+"customizados com o prefixo `MYC`."
 
 #: src/13-mcp.md:1
 msgid "MCP — AI Agent Integration"
@@ -9817,8 +9840,8 @@ msgstr ""
 "Requer: **autenticado** (qualquer usuário conectado). Nenhum papel de "
 "administrador necessário."
 
-#: src/14-json-rpc.md:104 src/14-json-rpc.md:210 src/14-json-rpc.md:252
-#: src/14-json-rpc.md:286
+#: src/14-json-rpc.md:104 src/14-json-rpc.md:211 src/14-json-rpc.md:253
+#: src/14-json-rpc.md:287
 msgid "**Accounts**"
 msgstr "**Contas**"
 
@@ -9878,7 +9901,7 @@ msgstr ""
 msgid "Get public metadata for a tenant"
 msgstr "Obter metadados públicos de um tenant"
 
-#: src/14-json-rpc.md:125 src/14-json-rpc.md:221 src/14-json-rpc.md:259
+#: src/14-json-rpc.md:125 src/14-json-rpc.md:222 src/14-json-rpc.md:260
 msgid "**Guests**"
 msgstr "**Convidados**"
 
@@ -9912,708 +9935,720 @@ msgid "Create a connection string a service uses to send emails"
 msgstr "Criar um token de connection string"
 
 #: src/14-json-rpc.md:137
-msgid "`beginners.tokens.list`"
+msgid "`beginners.tokens.listNotificationServices`"
 msgstr ""
 
 #: src/14-json-rpc.md:137
+msgid ""
+"List the services you can issue notification strings for, and the expiration "
+"cap"
+msgstr ""
+"Listar os serviços para os quais você pode emitir strings de notificação e o "
+"limite de expiração"
+
+#: src/14-json-rpc.md:138
+msgid "`beginners.tokens.list`"
+msgstr ""
+
+#: src/14-json-rpc.md:138
 msgid "List own active tokens"
 msgstr "Listar os próprios tokens ativos"
 
-#: src/14-json-rpc.md:138
+#: src/14-json-rpc.md:139
 msgid "`beginners.tokens.revoke`"
 msgstr ""
 
-#: src/14-json-rpc.md:138
+#: src/14-json-rpc.md:139
 msgid "Revoke a specific token"
 msgstr "Revogar um token específico"
 
-#: src/14-json-rpc.md:139
+#: src/14-json-rpc.md:140
 msgid "`beginners.tokens.delete`"
 msgstr ""
 
-#: src/14-json-rpc.md:139
+#: src/14-json-rpc.md:140
 msgid "Delete a token"
 msgstr "Excluir um token"
 
-#: src/14-json-rpc.md:141 src/14-json-rpc.md:293
+#: src/14-json-rpc.md:142 src/14-json-rpc.md:294
 msgid "**Metadata**"
 msgstr "**Metadados**"
 
-#: src/14-json-rpc.md:145
+#: src/14-json-rpc.md:146
 msgid "`beginners.meta.create`"
 msgstr ""
 
-#: src/14-json-rpc.md:145
+#: src/14-json-rpc.md:146
 msgid "Create account metadata entry"
 msgstr "Criar entrada de metadados da conta"
 
-#: src/14-json-rpc.md:146
+#: src/14-json-rpc.md:147
 msgid "`beginners.meta.update`"
 msgstr ""
 
-#: src/14-json-rpc.md:146
+#: src/14-json-rpc.md:147
 msgid "Update account metadata entry"
 msgstr "Atualizar entrada de metadados da conta"
 
-#: src/14-json-rpc.md:147
+#: src/14-json-rpc.md:148
 msgid "`beginners.meta.delete`"
 msgstr ""
 
-#: src/14-json-rpc.md:147
+#: src/14-json-rpc.md:148
 msgid "Delete account metadata entry"
 msgstr "Excluir entrada de metadados da conta"
 
-#: src/14-json-rpc.md:149
+#: src/14-json-rpc.md:150
 msgid "**Users and authentication**"
 msgstr "**Usuários e autenticação**"
 
-#: src/14-json-rpc.md:153
+#: src/14-json-rpc.md:154
 msgid "`beginners.users.create`"
 msgstr ""
 
-#: src/14-json-rpc.md:153
+#: src/14-json-rpc.md:154
 msgid "Register a new user credential"
 msgstr "Registrar uma nova credencial de usuário"
 
-#: src/14-json-rpc.md:154
+#: src/14-json-rpc.md:155
 msgid "`beginners.users.checkTokenAndActivateUser`"
 msgstr ""
 
-#: src/14-json-rpc.md:154
+#: src/14-json-rpc.md:155
 msgid "Activate user via email token"
 msgstr "Ativar usuário via token de e-mail"
 
-#: src/14-json-rpc.md:155
+#: src/14-json-rpc.md:156
 msgid "`beginners.users.startPasswordRedefinition`"
 msgstr ""
 
-#: src/14-json-rpc.md:155
+#: src/14-json-rpc.md:156
 msgid "Start password reset flow"
 msgstr "Iniciar fluxo de redefinição de senha"
 
-#: src/14-json-rpc.md:156
+#: src/14-json-rpc.md:157
 msgid "`beginners.users.checkTokenAndResetPassword`"
 msgstr ""
 
-#: src/14-json-rpc.md:156
+#: src/14-json-rpc.md:157
 msgid "Complete password reset"
 msgstr "Concluir redefinição de senha"
 
-#: src/14-json-rpc.md:157
+#: src/14-json-rpc.md:158
 msgid "`beginners.users.checkEmailPasswordValidity`"
 msgstr ""
 
-#: src/14-json-rpc.md:157
+#: src/14-json-rpc.md:158
 msgid "Validate credentials"
 msgstr "Validar credenciais"
 
-#: src/14-json-rpc.md:158
+#: src/14-json-rpc.md:159
 msgid "`beginners.users.totpStartActivation`"
 msgstr ""
 
-#: src/14-json-rpc.md:158
+#: src/14-json-rpc.md:159
 msgid "Begin TOTP 2FA setup"
 msgstr "Iniciar configuração do 2FA TOTP"
 
-#: src/14-json-rpc.md:159
+#: src/14-json-rpc.md:160
 msgid "`beginners.users.totpFinishActivation`"
 msgstr ""
 
-#: src/14-json-rpc.md:159
+#: src/14-json-rpc.md:160
 msgid "Complete TOTP 2FA setup"
 msgstr "Concluir configuração do 2FA TOTP"
 
-#: src/14-json-rpc.md:160
+#: src/14-json-rpc.md:161
 msgid "`beginners.users.totpCheckToken`"
 msgstr ""
 
-#: src/14-json-rpc.md:160
+#: src/14-json-rpc.md:161
 msgid "Verify a TOTP code"
 msgstr "Verificar um código TOTP"
 
-#: src/14-json-rpc.md:161
+#: src/14-json-rpc.md:162
 msgid "`beginners.users.totpDisable`"
 msgstr ""
 
-#: src/14-json-rpc.md:161
+#: src/14-json-rpc.md:162
 msgid "Disable TOTP 2FA"
 msgstr "Desativar 2FA TOTP"
 
-#: src/14-json-rpc.md:165
+#: src/14-json-rpc.md:166
 msgid "`guestManager` — Guest role management"
 msgstr ""
 
-#: src/14-json-rpc.md:167
+#: src/14-json-rpc.md:168
 msgid "Requires: **guests-manager** role."
 msgstr "Requer: papel de **guests-manager**."
 
-#: src/14-json-rpc.md:171
+#: src/14-json-rpc.md:172
 msgid "`guestManager.guestRoles.create`"
 msgstr ""
 
-#: src/14-json-rpc.md:171
+#: src/14-json-rpc.md:172
 msgid "Create a guest role"
 msgstr "Criar um papel de convidado"
 
-#: src/14-json-rpc.md:172
+#: src/14-json-rpc.md:173
 msgid "`guestManager.guestRoles.list`"
 msgstr ""
 
-#: src/14-json-rpc.md:172
+#: src/14-json-rpc.md:173
 msgid "List guest roles"
 msgstr "Listar papéis de convidado"
 
-#: src/14-json-rpc.md:173
+#: src/14-json-rpc.md:174
 msgid "`guestManager.guestRoles.delete`"
 msgstr ""
 
-#: src/14-json-rpc.md:173
+#: src/14-json-rpc.md:174
 msgid "Delete a guest role"
 msgstr "Excluir um papel de convidado"
 
-#: src/14-json-rpc.md:174
+#: src/14-json-rpc.md:175
 msgid "`guestManager.guestRoles.updateNameAndDescription`"
 msgstr ""
 
-#: src/14-json-rpc.md:174
+#: src/14-json-rpc.md:175
 msgid "Update role name and description"
 msgstr "Atualizar nome e descrição do papel"
 
-#: src/14-json-rpc.md:175
+#: src/14-json-rpc.md:176
 msgid "`guestManager.guestRoles.updatePermission`"
 msgstr ""
 
-#: src/14-json-rpc.md:175
+#: src/14-json-rpc.md:176
 msgid "Update role permission level"
 msgstr "Atualizar nível de permissão do papel"
 
-#: src/14-json-rpc.md:176
+#: src/14-json-rpc.md:177
 msgid "`guestManager.guestRoles.insertRoleChild`"
 msgstr ""
 
-#: src/14-json-rpc.md:176
+#: src/14-json-rpc.md:177
 msgid "Add a child role to a parent"
 msgstr "Adicionar um papel filho a um pai"
 
-#: src/14-json-rpc.md:177
+#: src/14-json-rpc.md:178
 msgid "`guestManager.guestRoles.removeRoleChild`"
 msgstr ""
 
-#: src/14-json-rpc.md:177
+#: src/14-json-rpc.md:178
 msgid "Remove a child role"
 msgstr "Remover um papel filho"
 
-#: src/14-json-rpc.md:181
+#: src/14-json-rpc.md:182
 msgid "`systemManager` — System-level management"
 msgstr ""
 
-#: src/14-json-rpc.md:183
+#: src/14-json-rpc.md:184
 msgid "Requires: **system-manager** role."
 msgstr "Requer: papel de **system-manager**."
 
-#: src/14-json-rpc.md:185
+#: src/14-json-rpc.md:186
 msgid "**Error codes**"
 msgstr "**Códigos de erro**"
 
-#: src/14-json-rpc.md:191
+#: src/14-json-rpc.md:192
 msgid "Get a specific error code"
 msgstr "Obter um código de erro específico"
 
-#: src/14-json-rpc.md:192
+#: src/14-json-rpc.md:193
 msgid "Update error code message and details"
 msgstr "Atualizar mensagem e detalhes do código de erro"
 
-#: src/14-json-rpc.md:193
+#: src/14-json-rpc.md:194
 msgid "Delete an error code"
 msgstr "Excluir um código de erro"
 
-#: src/14-json-rpc.md:195
+#: src/14-json-rpc.md:196
 msgid "**Webhooks**"
 msgstr "**Webhooks**"
 
-#: src/14-json-rpc.md:199
+#: src/14-json-rpc.md:200
 msgid "Register an outbound webhook"
 msgstr "Registrar um webhook de saída"
 
-#: src/14-json-rpc.md:201
+#: src/14-json-rpc.md:202
 msgid "Update a webhook"
 msgstr "Atualizar um webhook"
 
-#: src/14-json-rpc.md:202
+#: src/14-json-rpc.md:203
 msgid "Delete a webhook"
 msgstr "Excluir um webhook"
 
-#: src/14-json-rpc.md:206
+#: src/14-json-rpc.md:207
 msgid "`subscriptionsManager` — Subscription account management"
 msgstr ""
 
-#: src/14-json-rpc.md:208
+#: src/14-json-rpc.md:209
 msgid "Requires: **subscriptions-manager** role."
 msgstr "Requer: papel de **subscriptions-manager**."
 
-#: src/14-json-rpc.md:214
+#: src/14-json-rpc.md:215
 msgid "`subscriptionsManager.accounts.createSubscriptionAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:214
+#: src/14-json-rpc.md:215
 msgid "Create a subscription account"
 msgstr "Criar uma conta de assinatura"
 
-#: src/14-json-rpc.md:215
+#: src/14-json-rpc.md:216
 msgid "`subscriptionsManager.accounts.createRoleAssociatedAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:215
+#: src/14-json-rpc.md:216
 msgid "Create a role-associated account"
 msgstr "Criar uma conta associada a papel"
 
-#: src/14-json-rpc.md:216
+#: src/14-json-rpc.md:217
 msgid "`subscriptionsManager.accounts.list`"
 msgstr ""
 
-#: src/14-json-rpc.md:216
+#: src/14-json-rpc.md:217
 msgid "List subscription accounts"
 msgstr "Listar contas de assinatura"
 
-#: src/14-json-rpc.md:217
+#: src/14-json-rpc.md:218
 msgid "`subscriptionsManager.accounts.get`"
 msgstr ""
 
-#: src/14-json-rpc.md:217
+#: src/14-json-rpc.md:218
 msgid "Get a specific subscription account"
 msgstr "Obter uma conta de assinatura específica"
 
-#: src/14-json-rpc.md:218
+#: src/14-json-rpc.md:219
 msgid "`subscriptionsManager.accounts.updateNameAndFlags`"
 msgstr ""
 
-#: src/14-json-rpc.md:218
+#: src/14-json-rpc.md:219
 msgid "Update account name and flags"
 msgstr "Atualizar nome e flags da conta"
 
-#: src/14-json-rpc.md:219
+#: src/14-json-rpc.md:220
 msgid "`subscriptionsManager.accounts.propagateSubscriptionAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:219
+#: src/14-json-rpc.md:220
 msgid "Propagate account across tenants"
 msgstr "Propagar conta entre tenants"
 
-#: src/14-json-rpc.md:225
+#: src/14-json-rpc.md:226
 msgid "`subscriptionsManager.guests.listLicensedAccountsOfEmail`"
 msgstr ""
 
-#: src/14-json-rpc.md:225
+#: src/14-json-rpc.md:226
 msgid "List licensed accounts for an email"
 msgstr "Listar contas licenciadas para um e-mail"
 
-#: src/14-json-rpc.md:226
+#: src/14-json-rpc.md:227
 msgid "`subscriptionsManager.guests.guestUserToSubscriptionAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:226
+#: src/14-json-rpc.md:227
 msgid "Invite a user to a subscription account"
 msgstr "Convidar um usuário para uma conta de assinatura"
 
-#: src/14-json-rpc.md:227
+#: src/14-json-rpc.md:228
 msgid "`subscriptionsManager.guests.updateFlagsFromSubscriptionAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:227
+#: src/14-json-rpc.md:228
 msgid "Update guest flags"
 msgstr "Atualizar flags de convidado"
 
-#: src/14-json-rpc.md:228
+#: src/14-json-rpc.md:229
 msgid "`subscriptionsManager.guests.revokeUserGuestToSubscriptionAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:228
+#: src/14-json-rpc.md:229
 msgid "Revoke a guest invitation"
 msgstr "Revogar convite de convidado"
 
-#: src/14-json-rpc.md:229
+#: src/14-json-rpc.md:230
 msgid "`subscriptionsManager.guests.listGuestOnSubscriptionAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:229
+#: src/14-json-rpc.md:230
 msgid "List guests on a subscription account"
 msgstr "Listar convidados em uma conta de assinatura"
 
-#: src/14-json-rpc.md:231
+#: src/14-json-rpc.md:232
 msgid "**Guest roles**"
 msgstr "**Papéis de convidado**"
 
-#: src/14-json-rpc.md:235
+#: src/14-json-rpc.md:236
 msgid "`subscriptionsManager.guestRoles.list`"
 msgstr ""
 
-#: src/14-json-rpc.md:235
+#: src/14-json-rpc.md:236
 msgid "List guest roles for a subscription"
 msgstr "Listar papéis de convidado para uma assinatura"
 
-#: src/14-json-rpc.md:236
+#: src/14-json-rpc.md:237
 msgid "`subscriptionsManager.guestRoles.get`"
 msgstr ""
 
-#: src/14-json-rpc.md:236
+#: src/14-json-rpc.md:237
 msgid "Get a specific guest role"
 msgstr "Obter um papel de convidado específico"
 
-#: src/14-json-rpc.md:238 src/14-json-rpc.md:266
+#: src/14-json-rpc.md:239 src/14-json-rpc.md:267
 msgid "**Tags**"
 msgstr "**Tags**"
 
-#: src/14-json-rpc.md:242
+#: src/14-json-rpc.md:243
 msgid "`subscriptionsManager.tags.create`"
 msgstr ""
 
-#: src/14-json-rpc.md:242
+#: src/14-json-rpc.md:243
 msgid "Create a tag"
 msgstr "Criar uma tag"
 
-#: src/14-json-rpc.md:243
+#: src/14-json-rpc.md:244
 msgid "`subscriptionsManager.tags.update`"
 msgstr ""
 
-#: src/14-json-rpc.md:243
+#: src/14-json-rpc.md:244
 msgid "Update a tag"
 msgstr "Atualizar uma tag"
 
-#: src/14-json-rpc.md:244
+#: src/14-json-rpc.md:245
 msgid "`subscriptionsManager.tags.delete`"
 msgstr ""
 
-#: src/14-json-rpc.md:244
+#: src/14-json-rpc.md:245
 msgid "Delete a tag"
 msgstr "Excluir uma tag"
 
-#: src/14-json-rpc.md:248
+#: src/14-json-rpc.md:249
 msgid "`tenantManager` — Tenant internal management"
 msgstr ""
 
-#: src/14-json-rpc.md:250
+#: src/14-json-rpc.md:251
 msgid "Requires: **tenant-manager** role."
 msgstr "Requer: papel de **tenant-manager**."
 
-#: src/14-json-rpc.md:256
+#: src/14-json-rpc.md:257
 msgid "`tenantManager.accounts.createSubscriptionManagerAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:256
+#: src/14-json-rpc.md:257
 msgid "Create a subscription manager account within the tenant"
 msgstr "Criar uma conta de gerente de assinatura dentro do tenant"
 
-#: src/14-json-rpc.md:257
+#: src/14-json-rpc.md:258
 msgid "`tenantManager.accounts.deleteSubscriptionAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:257
+#: src/14-json-rpc.md:258
 msgid "Delete a subscription account"
 msgstr "Excluir uma conta de assinatura"
 
-#: src/14-json-rpc.md:263
+#: src/14-json-rpc.md:264
 msgid "`tenantManager.guests.guestUserToSubscriptionManagerAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:263
+#: src/14-json-rpc.md:264
 msgid "Invite a user as subscription manager"
 msgstr "Convidar um usuário como gerente de assinatura"
 
-#: src/14-json-rpc.md:264
+#: src/14-json-rpc.md:265
 msgid "`tenantManager.guests.revokeUserGuestToSubscriptionManagerAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:264
+#: src/14-json-rpc.md:265
 msgid "Revoke subscription manager invitation"
 msgstr "Revogar convite de gerente de assinatura"
 
-#: src/14-json-rpc.md:270
+#: src/14-json-rpc.md:271
 msgid "`tenantManager.tags.create`"
 msgstr ""
 
-#: src/14-json-rpc.md:270
+#: src/14-json-rpc.md:271
 msgid "Create a tenant tag"
 msgstr "Criar uma tag de tenant"
 
-#: src/14-json-rpc.md:271
+#: src/14-json-rpc.md:272
 msgid "`tenantManager.tags.update`"
 msgstr ""
 
-#: src/14-json-rpc.md:271
+#: src/14-json-rpc.md:272
 msgid "Update a tenant tag"
 msgstr "Atualizar uma tag de tenant"
 
-#: src/14-json-rpc.md:272
+#: src/14-json-rpc.md:273
 msgid "`tenantManager.tags.delete`"
 msgstr ""
 
-#: src/14-json-rpc.md:272
+#: src/14-json-rpc.md:273
 msgid "Delete a tenant tag"
 msgstr "Excluir uma tag de tenant"
 
-#: src/14-json-rpc.md:274 src/14-json-rpc.md:307
+#: src/14-json-rpc.md:275 src/14-json-rpc.md:308
 msgid "**Tenant**"
 msgstr "**Tenant**"
 
-#: src/14-json-rpc.md:278
+#: src/14-json-rpc.md:279
 msgid "`tenantManager.tenant.get`"
 msgstr ""
 
-#: src/14-json-rpc.md:278
+#: src/14-json-rpc.md:279
 msgid "Get tenant details"
 msgstr "Obter detalhes do tenant"
 
-#: src/14-json-rpc.md:282
+#: src/14-json-rpc.md:283
 msgid "`tenantOwner` — Tenant ownership operations"
 msgstr ""
 
-#: src/14-json-rpc.md:284
+#: src/14-json-rpc.md:285
 msgid "Requires: **tenant-owner** role."
 msgstr "Requer: papel de **tenant-owner**."
 
-#: src/14-json-rpc.md:290
+#: src/14-json-rpc.md:291
 msgid "`tenantOwner.accounts.createManagementAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:290
+#: src/14-json-rpc.md:291
 msgid "Create a management account for the tenant"
 msgstr "Criar uma conta de gerenciamento para o tenant"
 
-#: src/14-json-rpc.md:291
+#: src/14-json-rpc.md:292
 msgid "`tenantOwner.accounts.deleteTenantManagerAccount`"
 msgstr ""
 
-#: src/14-json-rpc.md:291
+#: src/14-json-rpc.md:292
 msgid "Delete a tenant manager account"
 msgstr "Excluir uma conta de gerente de tenant"
 
-#: src/14-json-rpc.md:297
+#: src/14-json-rpc.md:298
 msgid "`tenantOwner.meta.create`"
 msgstr ""
 
-#: src/14-json-rpc.md:297
+#: src/14-json-rpc.md:298
 msgid "Create tenant metadata"
 msgstr "Criar metadados de tenant"
 
-#: src/14-json-rpc.md:298
+#: src/14-json-rpc.md:299
 msgid "`tenantOwner.meta.delete`"
 msgstr ""
 
-#: src/14-json-rpc.md:298
+#: src/14-json-rpc.md:299
 msgid "Delete tenant metadata"
 msgstr "Excluir metadados de tenant"
 
-#: src/14-json-rpc.md:300
+#: src/14-json-rpc.md:301
 msgid "**Ownership**"
 msgstr "**Propriedade**"
 
-#: src/14-json-rpc.md:304
+#: src/14-json-rpc.md:305
 msgid "`tenantOwner.owner.guest`"
 msgstr ""
 
-#: src/14-json-rpc.md:304
+#: src/14-json-rpc.md:305
 msgid "Add a co-owner to the tenant"
 msgstr "Adicionar um coproprietário ao tenant"
 
-#: src/14-json-rpc.md:305
+#: src/14-json-rpc.md:306
 msgid "`tenantOwner.owner.revoke`"
 msgstr ""
 
-#: src/14-json-rpc.md:305
+#: src/14-json-rpc.md:306
 msgid "Remove a co-owner from the tenant"
 msgstr "Remover um coproprietário do tenant"
 
-#: src/14-json-rpc.md:311
+#: src/14-json-rpc.md:312
 msgid "`tenantOwner.tenant.updateNameAndDescription`"
 msgstr ""
 
-#: src/14-json-rpc.md:311
+#: src/14-json-rpc.md:312
 msgid "Update tenant name and description"
 msgstr "Atualizar nome e descrição do tenant"
 
-#: src/14-json-rpc.md:312
+#: src/14-json-rpc.md:313
 msgid "`tenantOwner.tenant.updateArchivingStatus`"
 msgstr ""
 
-#: src/14-json-rpc.md:312
+#: src/14-json-rpc.md:313
 msgid "Archive or unarchive the tenant"
 msgstr "Arquivar ou desarquivar o tenant"
 
-#: src/14-json-rpc.md:313
+#: src/14-json-rpc.md:314
 msgid "`tenantOwner.tenant.updateTrashingStatus`"
 msgstr ""
 
-#: src/14-json-rpc.md:313
+#: src/14-json-rpc.md:314
 msgid "Trash or restore the tenant"
 msgstr "Mover para lixeira ou restaurar o tenant"
 
-#: src/14-json-rpc.md:314
+#: src/14-json-rpc.md:315
 msgid "`tenantOwner.tenant.updateVerifyingStatus`"
 msgstr ""
 
-#: src/14-json-rpc.md:314
+#: src/14-json-rpc.md:315
 msgid "Mark the tenant as verified or unverified"
 msgstr "Marcar o tenant como verificado ou não verificado"
 
-#: src/14-json-rpc.md:318
+#: src/14-json-rpc.md:319
 msgid "`userManager` — User account lifecycle (platform admins)"
 msgstr ""
 
-#: src/14-json-rpc.md:320
+#: src/14-json-rpc.md:321
 msgid "Requires: **users-manager** role."
 msgstr "Requer: papel de **users-manager**."
 
-#: src/14-json-rpc.md:324
+#: src/14-json-rpc.md:325
 msgid "`userManager.account.approve`"
 msgstr ""
 
-#: src/14-json-rpc.md:324
+#: src/14-json-rpc.md:325
 msgid "Approve a user account registration"
 msgstr "Aprovar o registro de uma conta de usuário"
 
-#: src/14-json-rpc.md:325
+#: src/14-json-rpc.md:326
 msgid "`userManager.account.disapprove`"
 msgstr ""
 
-#: src/14-json-rpc.md:325
+#: src/14-json-rpc.md:326
 msgid "Disapprove a user account registration"
 msgstr "Reprovar o registro de uma conta de usuário"
 
-#: src/14-json-rpc.md:326
+#: src/14-json-rpc.md:327
 msgid "`userManager.account.activate`"
 msgstr ""
 
-#: src/14-json-rpc.md:326
+#: src/14-json-rpc.md:327
 msgid "Re-activate a suspended user account"
 msgstr "Reativar uma conta de usuário suspensa"
 
-#: src/14-json-rpc.md:327
+#: src/14-json-rpc.md:328
 msgid "`userManager.account.deactivate`"
 msgstr ""
 
-#: src/14-json-rpc.md:327
+#: src/14-json-rpc.md:328
 msgid "Suspend a user account"
 msgstr "Suspender uma conta de usuário"
 
-#: src/14-json-rpc.md:328
+#: src/14-json-rpc.md:329
 msgid "`userManager.account.archive`"
 msgstr ""
 
-#: src/14-json-rpc.md:328
+#: src/14-json-rpc.md:329
 msgid "Archive a user account"
 msgstr "Arquivar uma conta de usuário"
 
-#: src/14-json-rpc.md:329
+#: src/14-json-rpc.md:330
 msgid "`userManager.account.unarchive`"
 msgstr ""
 
-#: src/14-json-rpc.md:329
+#: src/14-json-rpc.md:330
 msgid "Restore an archived user account"
 msgstr "Restaurar uma conta de usuário arquivada"
 
-#: src/14-json-rpc.md:333
+#: src/14-json-rpc.md:334
 msgid "`service` — Service discovery"
 msgstr ""
 
-#: src/14-json-rpc.md:335
+#: src/14-json-rpc.md:336
 msgid "Requires: authenticated."
 msgstr "Requer: autenticado."
 
-#: src/14-json-rpc.md:339
+#: src/14-json-rpc.md:340
 msgid "`service.listDiscoverableServices`"
 msgstr ""
 
-#: src/14-json-rpc.md:339
+#: src/14-json-rpc.md:340
 msgid "List all services marked as discoverable for AI agent use"
 msgstr ""
 "Listar todos os serviços marcados como descobríveis para uso por agentes de "
 "IA"
 
-#: src/14-json-rpc.md:343
+#: src/14-json-rpc.md:344
 msgid "`staff` — Privilege escalation"
 msgstr ""
 
-#: src/14-json-rpc.md:345
+#: src/14-json-rpc.md:346
 msgid "Requires: **staff** role."
 msgstr "Requer: papel de **staff**."
 
-#: src/14-json-rpc.md:349
+#: src/14-json-rpc.md:350
 msgid "`staff.accounts.upgradePrivileges`"
 msgstr ""
 
-#: src/14-json-rpc.md:349
+#: src/14-json-rpc.md:350
 msgid "Upgrade an account to staff privileges"
 msgstr "Elevar uma conta a privilégios de staff"
 
-#: src/14-json-rpc.md:350
+#: src/14-json-rpc.md:351
 msgid "`staff.accounts.downgradePrivileges`"
 msgstr ""
 
-#: src/14-json-rpc.md:350
+#: src/14-json-rpc.md:351
 msgid "Downgrade a staff account to standard privileges"
 msgstr "Rebaixar uma conta de staff para privilégios padrão"
 
-#: src/14-json-rpc.md:354
+#: src/14-json-rpc.md:355
 msgid "Error responses"
 msgstr "Respostas de erro"
 
-#: src/14-json-rpc.md:356
+#: src/14-json-rpc.md:357
 msgid "JSON-RPC errors follow the standard format:"
 msgstr "Os erros JSON-RPC seguem o formato padrão:"
 
-#: src/14-json-rpc.md:361
+#: src/14-json-rpc.md:362
 msgid "\"error\""
 msgstr ""
 
-#: src/14-json-rpc.md:363
+#: src/14-json-rpc.md:364
 msgid "\"Invalid request\""
 msgstr ""
 
-#: src/14-json-rpc.md:369
+#: src/14-json-rpc.md:370
 msgid "Standard error codes:"
 msgstr "Códigos de erro padrão:"
 
-#: src/14-json-rpc.md:373
+#: src/14-json-rpc.md:374
 msgid "`-32700`"
 msgstr ""
 
-#: src/14-json-rpc.md:373
+#: src/14-json-rpc.md:374
 msgid "Parse error — invalid JSON"
 msgstr "Erro de análise — JSON inválido"
 
-#: src/14-json-rpc.md:374
+#: src/14-json-rpc.md:375
 msgid "`-32600`"
 msgstr ""
 
-#: src/14-json-rpc.md:374
+#: src/14-json-rpc.md:375
 msgid "Invalid request — not a valid JSON-RPC 2.0 object"
 msgstr "Requisição inválida — não é um objeto JSON-RPC 2.0 válido"
 
-#: src/14-json-rpc.md:375
+#: src/14-json-rpc.md:376
 msgid "`-32601`"
 msgstr ""
 
-#: src/14-json-rpc.md:375
+#: src/14-json-rpc.md:376
 msgid "Method not found"
 msgstr "Método não encontrado"
 
-#: src/14-json-rpc.md:376
+#: src/14-json-rpc.md:377
 msgid "`-32602`"
 msgstr ""
 
-#: src/14-json-rpc.md:376
+#: src/14-json-rpc.md:377
 msgid "Invalid params"
 msgstr "Parâmetros inválidos"
 
-#: src/14-json-rpc.md:377
+#: src/14-json-rpc.md:378
 msgid "`-32603`"
 msgstr ""
 
-#: src/14-json-rpc.md:377
+#: src/14-json-rpc.md:378
 msgid "Internal error"
 msgstr "Erro interno"
 
-#: src/14-json-rpc.md:379
+#: src/14-json-rpc.md:380
 msgid ""
 "Authentication failures return HTTP 401 before the JSON-RPC layer is "
 "reached. Authorization failures (wrong role) return a JSON-RPC error with "
