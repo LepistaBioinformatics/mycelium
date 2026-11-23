@@ -65,7 +65,7 @@ msgstr "Códigos de erro padrão:"
 
 #: src/SUMMARY.md:18 src/30-serving-the-webapp.md:1
 msgid "Serving the Webapp"
-msgstr ""
+msgstr "Servindo o Webapp"
 
 #: src/SUMMARY.md:20
 msgid "Core Concepts"
@@ -1351,15 +1351,14 @@ msgstr ""
 "apis.md) para o guia completo."
 
 #: src/04-configuration.md:264
-#, fuzzy
 msgid "`[api.webapp]` — Serve the webapp (optional)"
-msgstr "`[api]` — Servidor e roteamento"
+msgstr "`[api.webapp]` — Servir o webapp (opcional)"
 
 #: src/04-configuration.md:266
 msgid ""
 "Serves a webapp build under `/_app/`. Needs a gateway built with the "
 "`webapp` feature. See [Serving the Webapp](./30-serving-the-webapp.md)."
-msgstr ""
+msgstr "Serve um build do webapp em `/_app/`. Exige um gateway compilado com a feature `webapp`. Veja [Servindo o Webapp](./30-serving-the-webapp.md)."
 
 #: src/04-configuration.md:268
 msgid ""
@@ -1371,6 +1370,11 @@ msgid ""
 "app-config\n"
 "```"
 msgstr ""
+"```toml\n"
+"[api.webapp]\n"
+"distDir = \"/srv/mycelium-webapp/dist\"      # o dist/ do webapp, compilado com VITE_BASE_PATH=/_app/\n"
+"hostedLoginClientId = \"webapp-01\"          # opcional -- publicado pelo GET /app-config\n"
+"```"
 
 #: src/04-configuration.md:278
 msgid ""
@@ -2417,14 +2421,14 @@ msgid ""
 "static build), or the gateway can serve it under `/_app/`. Serving it from "
 "the gateway means one process, one origin, no CORS setup and no second "
 "deployment."
-msgstr ""
+msgstr "O [webapp do Mycelium](https://github.com/LepistaBioinformatics/mycelium-webapp) é a interface de usuários e operadores: login, contas, tenants, convidados e federação. Ele pode rodar como um serviço próprio (nginx na frente do build estático), ou o gateway pode servi-lo em `/_app/`. Servi-lo pelo gateway significa um processo, uma origem, nenhuma configuração de CORS e nenhuma segunda implantação."
 
 #: src/30-serving-the-webapp.md:9
 msgid ""
 "**Opt-in.** Serving the webapp needs the `webapp` cargo feature and an "
 "`[api.webapp]` section. Without either, `/_app/*` goes to the downstream "
 "router like any other path and nothing changes."
-msgstr ""
+msgstr "**Opcional.** Servir o webapp exige a feature cargo `webapp` e uma seção `[api.webapp]`. Sem qualquer uma delas, `/_app/*` vai para o roteador downstream como qualquer outro caminho e nada muda."
 
 #: src/30-serving-the-webapp.md:15 src/11-authentication-flows.md:13
 #: src/12-response-callbacks.md:13 src/16-webhooks.md:10
@@ -2436,7 +2440,7 @@ msgid ""
 "The gateway serves the files of a webapp build (its `dist/` directory) from "
 "disk, under the fixed prefix `/_app/`. The prefix cannot be changed, because "
 "the build itself is made for it."
-msgstr ""
+msgstr "O gateway serve os arquivos de um build do webapp (o diretório `dist/`) a partir do disco, sob o prefixo fixo `/_app/`. O prefixo não pode ser alterado, porque o próprio build é feito para ele."
 
 #: src/30-serving-the-webapp.md:20
 msgid ""
@@ -2444,7 +2448,7 @@ msgid ""
 "extension is answered with `index.html`, so deep links such as `/_app/"
 "dashboard/federation` survive a page reload. A missing file with an "
 "extension, such as `/_app/assets/missing.js`, is a 404."
-msgstr ""
+msgstr "Qualquer caminho sob `/_app/` que não seja um arquivo do build e não tenha extensão é respondido com o `index.html`, para que links diretos como `/_app/dashboard/federation` sobrevivam a um recarregamento da página. Um arquivo ausente com extensão, como `/_app/assets/missing.js`, é um 404."
 
 #: src/30-serving-the-webapp.md:24
 msgid ""
@@ -2452,7 +2456,7 @@ msgid ""
 "not go through the downstream router or authentication. The webapp then "
 "calls the gateway API (`/_adm/...`) on the same origin, with the user's "
 "token."
-msgstr ""
+msgstr "`/_app/*` é público, como os arquivos de qualquer site. As requisições sob ele não passam pelo roteador downstream nem pela autenticação. O webapp então chama a API do gateway (`/_adm/...`) na mesma origem, com o token do usuário."
 
 #: src/30-serving-the-webapp.md:28
 msgid ""
@@ -2460,79 +2464,78 @@ msgid ""
 "build on their next visit. The hashed assets are cached for a year. Every "
 "answer carries `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: "
 "nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`."
-msgstr ""
+msgstr "O `index.html` e o service worker nunca são cacheados, então os usuários recebem um build novo na próxima visita. Os assets com hash ficam em cache por um ano. Toda resposta leva `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff` e `Referrer-Policy: strict-origin-when-cross-origin`."
 
 #: src/30-serving-the-webapp.md:33
 msgid ""
 "Requests that try to leave the build directory are never answered with a "
 "file outside it. That covers `..` segments, encoded traversals and symlinks "
 "pointing out."
-msgstr ""
+msgstr "Requisições que tentam sair do diretório do build nunca são respondidas com um arquivo de fora dele. Isso cobre segmentos `..`, traversals codificados e symlinks que apontam para fora."
 
 #: src/30-serving-the-webapp.md:39
 msgid "1. Build the gateway with the feature"
-msgstr ""
+msgstr "1. Compile o gateway com a feature"
 
 #: src/30-serving-the-webapp.md:41
 msgid "Add `webapp` to the features of your build mode:"
-msgstr ""
+msgstr "Acrescente `webapp` às features do seu modo de build:"
 
 #: src/30-serving-the-webapp.md:44
-#, fuzzy
 msgid "# Full mode\n"
-msgstr "Jornada completa"
+msgstr "# Modo full\n"
 
 #: src/30-serving-the-webapp.md:46
 msgid "# Postgres-only mode\n"
-msgstr ""
+msgstr "# Modo postgres-only\n"
 
 #: src/30-serving-the-webapp.md:56
 msgid ""
 "The published Docker images are built without it. Build your own image with "
 "the feature to serve the webapp from a container."
-msgstr ""
+msgstr "As imagens Docker publicadas são compiladas sem ela. Compile a sua própria imagem com a feature para servir o webapp a partir de um container."
 
 #: src/30-serving-the-webapp.md:59
 msgid "2. Build the webapp for `/_app/`"
-msgstr ""
+msgstr "2. Compile o webapp para `/_app/`"
 
 #: src/30-serving-the-webapp.md:61
 msgid ""
 "From a checkout of the webapp, at the version that matches your gateway:"
-msgstr ""
+msgstr "A partir de um checkout do webapp, na versão compatível com o seu gateway:"
 
 #: src/30-serving-the-webapp.md:65
 msgid "/_app/"
-msgstr ""
+msgstr "/_app/"
 
 #: src/30-serving-the-webapp.md:68
 msgid ""
 "`VITE_BASE_PATH=/_app/` makes every asset, route and the service worker "
 "resolve under `/_app/`."
-msgstr ""
+msgstr "`VITE_BASE_PATH=/_app/` faz todos os assets, as rotas e o service worker resolverem sob `/_app/`."
 
 #: src/30-serving-the-webapp.md:70
 msgid ""
 "The empty `VITE_MYCELIUM_API_URL=` makes the webapp call the API on its own "
 "origin. Keep it empty even when a local `.env` file sets it, because the "
 "value from the shell wins."
-msgstr ""
+msgstr "O `VITE_MYCELIUM_API_URL=` vazio faz o webapp chamar a API na própria origem. Mantenha-o vazio mesmo quando um arquivo `.env` local o define, porque o valor do shell prevalece."
 
 #: src/30-serving-the-webapp.md:74
 msgid ""
 "The output is `dist/`. The same build works on any gateway, since it holds "
 "no URL and no client id."
-msgstr ""
+msgstr "A saída é o `dist/`. O mesmo build funciona em qualquer gateway, já que não contém URL nem client id."
 
 #: src/30-serving-the-webapp.md:77
 msgid "3. Configure the gateway"
-msgstr ""
+msgstr "3. Configure o gateway"
 
 #: src/30-serving-the-webapp.md:79
 msgid ""
 "Point `distDir` to the build and name the hosted login client the webapp "
 "signs in with:"
-msgstr ""
+msgstr "Aponte o `distDir` para o build e informe o cliente do hosted login com que o webapp faz o login:"
 
 #: src/30-serving-the-webapp.md:82
 msgid ""
@@ -2542,13 +2545,18 @@ msgid ""
 "hostedLoginClientId = \"webapp-01\"\n"
 "```"
 msgstr ""
+"```toml\n"
+"[api.webapp]\n"
+"distDir = \"/srv/mycelium-webapp/dist\"\n"
+"hostedLoginClientId = \"webapp-01\"\n"
+"```"
 
 #: src/30-serving-the-webapp.md:88
 msgid ""
 "`hostedLoginClientId` is optional. When set, `GET /app-config` publishes it, "
 "and the webapp offers the gateway-hosted login with that client. The client "
 "must exist and accept the webapp's callback:"
-msgstr ""
+msgstr "O `hostedLoginClientId` é opcional. Quando definido, o `GET /app-config` o publica, e o webapp oferece o login hospedado pelo gateway com esse cliente. O cliente precisa existir e aceitar o callback do webapp:"
 
 #: src/30-serving-the-webapp.md:92
 msgid ""
@@ -2560,15 +2568,21 @@ msgid ""
 "]\n"
 "```"
 msgstr ""
+"```toml\n"
+"[auth.hostedLogin.define]\n"
+"clients = [\n"
+"  { clientId = \"webapp-01\", redirectUris = [\"https://myc-01.example.com/_app/callback\"] },\n"
+"]\n"
+"```"
 
 #: src/30-serving-the-webapp.md:99
 msgid ""
 "The callback is your gateway's public origin followed by `/_app/callback`."
-msgstr ""
+msgstr "O callback é a origem pública do seu gateway seguida de `/_app/callback`."
 
 #: src/30-serving-the-webapp.md:101
 msgid "4. Open it"
-msgstr ""
+msgstr "4. Abra o webapp"
 
 #: src/30-serving-the-webapp.md:103
 msgid ""
@@ -2576,113 +2590,111 @@ msgid ""
 "instance asks for its first staff account to be claimed before anyone can "
 "sign in. Claim it at `/_adm/instance/bootstrap` with "
 "`core.accountLifeCycle.staffBootstrapSecret`."
-msgstr ""
+msgstr "Inicie o gateway e abra `https://myc-01.example.com/_app/`. Uma instância nova pede que a primeira conta staff seja reivindicada antes que alguém possa fazer login. Reivindique-a em `/_adm/instance/bootstrap` com o `core.accountLifeCycle.staffBootstrapSecret`."
 
 #: src/30-serving-the-webapp.md:108
-#, fuzzy
 msgid "With Docker"
-msgstr "Com Docker:"
+msgstr "Com Docker"
 
 #: src/30-serving-the-webapp.md:110
 msgid ""
 "Mount the build into a gateway image built with the feature, and point "
 "`distDir` at the mount:"
-msgstr ""
+msgstr "Monte o build numa imagem do gateway compilada com a feature e aponte o `distDir` para a montagem:"
 
 #: src/30-serving-the-webapp.md:120
 msgid ""
 "`my-registry/mycelium-api-webapp` stands for your own image of the gateway, "
 "built with `--features webapp`."
-msgstr ""
+msgstr "`my-registry/mycelium-api-webapp` representa a sua própria imagem do gateway, compilada com `--features webapp`."
 
 #: src/30-serving-the-webapp.md:125
 msgid "Startup checks"
-msgstr ""
+msgstr "Verificações na inicialização"
 
 #: src/30-serving-the-webapp.md:127
 msgid ""
 "The gateway refuses to start, with an error naming the problem and the path, "
 "when `[api.webapp]` is set and:"
-msgstr ""
+msgstr "O gateway se recusa a iniciar, com um erro que indica o problema e o caminho, quando `[api.webapp]` está definido e:"
 
 #: src/30-serving-the-webapp.md:130
 msgid "the binary was built without the `webapp` feature,"
-msgstr ""
+msgstr "o binário foi compilado sem a feature `webapp`,"
 
 #: src/30-serving-the-webapp.md:131
 msgid "`distDir` does not exist or cannot be read, or"
-msgstr ""
+msgstr "o `distDir` não existe ou não pode ser lido, ou"
 
 #: src/30-serving-the-webapp.md:132
 msgid "`distDir` has no `index.html`."
-msgstr ""
+msgstr "o `distDir` não tem `index.html`."
 
 #: src/30-serving-the-webapp.md:134
 msgid ""
 "It also logs a warning for each downstream route configured under `/_app`, "
 "since those routes cannot be reached while the webapp is served."
-msgstr ""
+msgstr "Ele também registra um aviso para cada rota downstream configurada sob `/_app`, já que essas rotas ficam inacessíveis enquanto o webapp é servido."
 
 #: src/30-serving-the-webapp.md:141
 msgid "Symptom"
-msgstr ""
+msgstr "Sintoma"
 
 #: src/30-serving-the-webapp.md:141
 msgid "Cause"
-msgstr ""
+msgstr "Causa"
 
 #: src/30-serving-the-webapp.md:143
 msgid "Blank page, assets answer 404"
-msgstr ""
+msgstr "Página em branco, assets respondem 404"
 
 #: src/30-serving-the-webapp.md:143
 msgid "The webapp was built without `VITE_BASE_PATH=/_app/`. Rebuild it."
-msgstr ""
+msgstr "O webapp foi compilado sem `VITE_BASE_PATH=/_app/`. Compile de novo."
 
 #: src/30-serving-the-webapp.md:144
 msgid "API calls go to another host"
-msgstr ""
+msgstr "Chamadas à API vão para outro host"
 
 #: src/30-serving-the-webapp.md:144
 msgid ""
 "`VITE_MYCELIUM_API_URL` was set during the build, possibly from a `.env` "
 "file. Rebuild with it empty."
-msgstr ""
+msgstr "O `VITE_MYCELIUM_API_URL` foi definido durante o build, possivelmente por um arquivo `.env`. Compile de novo com ele vazio."
 
 #: src/30-serving-the-webapp.md:145
 msgid "No hosted login option"
-msgstr ""
+msgstr "Nenhuma opção de login hospedado"
 
 #: src/30-serving-the-webapp.md:145
 msgid ""
 "`hostedLoginClientId` is not set, so `GET /app-config` has no "
 "`hostedLoginClientId`."
-msgstr ""
+msgstr "O `hostedLoginClientId` não está definido, então o `GET /app-config` não traz `hostedLoginClientId`."
 
 #: src/30-serving-the-webapp.md:146
-#, fuzzy
 msgid "Login fails after the gateway's sign-in page"
-msgstr "Profile alterado depois da assinatura"
+msgstr "O login falha depois da página de login do gateway"
 
 #: src/30-serving-the-webapp.md:146
 msgid "The client's `redirectUris` lack `<origin>/_app/callback`."
-msgstr ""
+msgstr "Os `redirectUris` do cliente não incluem `<origin>/_app/callback`."
 
 #: src/30-serving-the-webapp.md:147
 msgid "`/_app/` answers like a downstream route"
-msgstr ""
+msgstr "`/_app/` responde como uma rota downstream"
 
 #: src/30-serving-the-webapp.md:147
 msgid ""
 "The gateway was built without the `webapp` feature, or `[api.webapp]` is "
 "missing."
-msgstr ""
+msgstr "O gateway foi compilado sem a feature `webapp`, ou falta a seção `[api.webapp]`."
 
 #: src/30-serving-the-webapp.md:149
 msgid ""
 "To upgrade the webapp, replace the contents of `distDir`. No restart is "
 "needed: the next page load picks up the new `index.html`."
-msgstr ""
+msgstr "Para atualizar o webapp, substitua o conteúdo do `distDir`. Não é preciso reiniciar: o próximo carregamento da página já pega o novo `index.html`."
 
 #: src/01-authorization.md:3
 msgid ""
