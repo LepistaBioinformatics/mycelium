@@ -362,6 +362,10 @@ malformed template stops the gateway at boot.
 returned connection string works only on the send endpoint: every other surface
 rejects it.
 
+`beginners.tokens.listNotificationServices` returns the services the caller can
+issue for, the tenants each string can be bound to and the instance
+`maxConnectionStringTtlInDays`, so a UI can offer only valid choices.
+
 **Sending.** The service calls `POST /_adm/notifications/email` with the string
 in the `x-mycelium-connection-string` header:
 

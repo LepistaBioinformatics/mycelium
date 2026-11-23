@@ -55,7 +55,7 @@ use myc_core::{
         token::{
             create_connection_string, create_notification_connection_string,
             delete_connection_string, list_my_connection_strings,
-            revoke_connection_string,
+            list_notification_issuance_options, revoke_connection_string,
         },
         user::{
             check_email_password_validity, check_token_and_activate_user,
@@ -401,6 +401,31 @@ pub async fn dispatch_beginners(
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
             Ok(serde_json::json!({ "connectionString": result }))
+        }
+        method_names::BEGINNERS_TOKENS_LIST_NOTIFICATION_SERVICES => {
+            let notifications_settings = req
+                .and_then(|r| {
+                    r.app_data::<web::Data<ServiceNotificationsConfig>>()
+                })
+                .ok_or_else(|| {
+                    invalid_params("Service notifications config required")
+                })?
+                .get_ref();
+            let mem_module = req
+                .and_then(|r| r.app_data::<web::Data<MemDbAppModule>>())
+                .ok_or_else(|| invalid_params("Services registry required"))?;
+            let result = list_notification_issuance_options(
+                profile.to_profile(),
+                notifications_settings.to_owned(),
+                Box::new(&*mem_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(result).map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
         }
         method_names::BEGINNERS_TOKENS_LIST => {
             let result = list_my_connection_strings(

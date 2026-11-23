@@ -182,6 +182,15 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
+            "name": method_names::BEGINNERS_TOKENS_LIST_NOTIFICATION_SERVICES,
+            "summary": "List notification issuance options",
+            "description": "Lists the services the caller can issue notification connection strings for (senderTag, displayName, recipientPolicy, the tenants a string can be bound to and whether it can be issued without a tenant), plus the instance maxConnectionStringTtlInDays. Every option passes the same issuer check as beginners.tokens.createNotification.",
+            "tags": [{ "name": "beginners" }, { "name": "tokens" }],
+            "params": [],
+            "result": { "name": "result", "description": "NotificationIssuanceOptions", "schema": { "type": "object" } },
+            "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
+        }),
+        serde_json::json!({
             "name": method_names::BEGINNERS_TOKENS_LIST,
             "summary": "List my connection strings",
             "description": "Lists all connection strings for the current user.",
@@ -298,6 +307,19 @@ mod tests {
         method_names,
         openrpc::{generate_openrpc_spec, OpenRpcSpecConfig},
     };
+
+    #[test]
+    fn openrpc_spec_documents_the_notification_issuance_options_method() {
+        let spec = generate_openrpc_spec(&OpenRpcSpecConfig::default());
+
+        let documented =
+            spec["methods"].as_array().unwrap().iter().any(|method| {
+                method["name"]
+                    == method_names::BEGINNERS_TOKENS_LIST_NOTIFICATION_SERVICES
+            });
+
+        assert!(documented);
+    }
 
     #[test]
     fn openrpc_spec_documents_the_notification_token_method() {

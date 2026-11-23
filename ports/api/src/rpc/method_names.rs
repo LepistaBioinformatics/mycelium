@@ -51,6 +51,8 @@ pub const BEGINNERS_TOKENS_CREATE_NOTIFICATION: &str =
     "beginners.tokens.createNotification";
 pub const BEGINNERS_TOKENS_DELETE: &str = "beginners.tokens.delete";
 pub const BEGINNERS_TOKENS_LIST: &str = "beginners.tokens.list";
+pub const BEGINNERS_TOKENS_LIST_NOTIFICATION_SERVICES: &str =
+    "beginners.tokens.listNotificationServices";
 pub const BEGINNERS_TOKENS_REVOKE: &str = "beginners.tokens.revoke";
 pub const BEGINNERS_USERS: &str = "beginners.users.create";
 pub const BEGINNERS_USERS_CHECK_TOKEN_AND_ACTIVATE_USER: &str =
