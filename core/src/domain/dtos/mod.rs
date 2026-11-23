@@ -3,6 +3,7 @@ pub mod account_type;
 pub mod callback;
 pub mod email;
 pub mod error_code;
+pub mod error_code_filters;
 pub mod federation;
 pub mod guest_role;
 pub mod guest_user;

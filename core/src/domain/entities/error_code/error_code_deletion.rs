@@ -1,9 +1,12 @@
 use async_trait::async_trait;
+#[cfg(test)]
+use mockall::automock;
 use mycelium_base::{
     entities::DeletionResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait ErrorCodeDeletion: Interface + Send + Sync {
     async fn delete(

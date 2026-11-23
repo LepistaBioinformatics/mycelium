@@ -19,6 +19,7 @@ use utoipa::OpenApi;
 
 use audit::resource_audit_trail_endpoints as Audit__Resource_Trail;
 use index::heath_check_endpoints as Index__Heath_Check;
+use index::public_error_code_endpoints as Index__Public_Error_Code;
 use manager::account_endpoints as Managers__Accounts;
 use manager::guest_role_endpoints as Managers__Guest_Role;
 use manager::tenant_endpoints as Managers__Tenants;
@@ -714,6 +715,10 @@ struct UsersManagerAccountApiDoc;
         //
         Index__Heath_Check::health_url,
         Index__Heath_Check::now_url,
+        //
+        // PUBLIC ERROR CODES
+        //
+        Index__Public_Error_Code::list_public_error_codes_url,
     ),
     components(
         schemas(
@@ -832,6 +837,7 @@ struct UsersManagerAccountApiDoc;
             //
             System_Manager__Error_Code::CreateErrorCodeBody,
             System_Manager__Error_Code::ListErrorCodesParams,
+            Index__Public_Error_Code::ListPublicErrorCodesParams,
             System_Manager__Error_Code::UpdateErrorCodeMessageAndDetailsBody,
             System_Manager__Webhook::CreateWebHookBody,
             System_Manager__Webhook::UpdateWebHookBody,

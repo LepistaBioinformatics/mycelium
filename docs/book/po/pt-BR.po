@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-22T20:56:17-03:00\n"
+"POT-Creation-Date: 2026-11-22T23:41:32-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -915,17 +915,17 @@ msgstr "Campo"
 #: src/04-configuration.md:211 src/06-downstream-apis.md:187
 #: src/06-downstream-apis.md:436 src/06-downstream-apis.md:451
 #: src/12-response-callbacks.md:165 src/12-response-callbacks.md:187
-#: src/16-webhooks.md:98 src/17-error-codes.md:90 src/14-json-rpc.md:64
-#: src/14-json-rpc.md:80 src/14-json-rpc.md:92 src/14-json-rpc.md:106
-#: src/14-json-rpc.md:115 src/14-json-rpc.md:121 src/14-json-rpc.md:127
-#: src/14-json-rpc.md:133 src/14-json-rpc.md:143 src/14-json-rpc.md:151
-#: src/14-json-rpc.md:169 src/14-json-rpc.md:187 src/14-json-rpc.md:197
-#: src/14-json-rpc.md:212 src/14-json-rpc.md:223 src/14-json-rpc.md:233
-#: src/14-json-rpc.md:240 src/14-json-rpc.md:254 src/14-json-rpc.md:261
-#: src/14-json-rpc.md:268 src/14-json-rpc.md:276 src/14-json-rpc.md:288
-#: src/14-json-rpc.md:295 src/14-json-rpc.md:302 src/14-json-rpc.md:309
-#: src/14-json-rpc.md:322 src/14-json-rpc.md:337 src/14-json-rpc.md:347
-#: src/18-cli.md:52 src/20-encryption-inventory.md:34
+#: src/16-webhooks.md:98 src/17-error-codes.md:95 src/17-error-codes.md:109
+#: src/14-json-rpc.md:64 src/14-json-rpc.md:80 src/14-json-rpc.md:92
+#: src/14-json-rpc.md:106 src/14-json-rpc.md:115 src/14-json-rpc.md:121
+#: src/14-json-rpc.md:127 src/14-json-rpc.md:133 src/14-json-rpc.md:143
+#: src/14-json-rpc.md:151 src/14-json-rpc.md:169 src/14-json-rpc.md:187
+#: src/14-json-rpc.md:197 src/14-json-rpc.md:212 src/14-json-rpc.md:223
+#: src/14-json-rpc.md:233 src/14-json-rpc.md:240 src/14-json-rpc.md:254
+#: src/14-json-rpc.md:261 src/14-json-rpc.md:268 src/14-json-rpc.md:276
+#: src/14-json-rpc.md:288 src/14-json-rpc.md:295 src/14-json-rpc.md:302
+#: src/14-json-rpc.md:309 src/14-json-rpc.md:322 src/14-json-rpc.md:337
+#: src/14-json-rpc.md:347 src/18-cli.md:52 src/20-encryption-inventory.md:34
 #: src/08-release-process.md:196
 msgid "Description"
 msgstr "Descrição"
@@ -1358,7 +1358,9 @@ msgstr "`[api.webapp]` — Servir o webapp (opcional)"
 msgid ""
 "Serves a webapp build under `/_app/`. Needs a gateway built with the "
 "`webapp` feature. See [Serving the Webapp](./30-serving-the-webapp.md)."
-msgstr "Serve um build do webapp em `/_app/`. Exige um gateway compilado com a feature `webapp`. Veja [Servindo o Webapp](./30-serving-the-webapp.md)."
+msgstr ""
+"Serve um build do webapp em `/_app/`. Exige um gateway compilado com a "
+"feature `webapp`. Veja [Servindo o Webapp](./30-serving-the-webapp.md)."
 
 #: src/04-configuration.md:268
 msgid ""
@@ -1372,8 +1374,10 @@ msgid ""
 msgstr ""
 "```toml\n"
 "[api.webapp]\n"
-"distDir = \"/srv/mycelium-webapp/dist\"      # o dist/ do webapp, compilado com VITE_BASE_PATH=/_app/\n"
-"hostedLoginClientId = \"webapp-01\"          # opcional -- publicado pelo GET /app-config\n"
+"distDir = \"/srv/mycelium-webapp/dist\"      # o dist/ do webapp, compilado "
+"com VITE_BASE_PATH=/_app/\n"
+"hostedLoginClientId = \"webapp-01\"          # opcional -- publicado pelo "
+"GET /app-config\n"
 "```"
 
 #: src/04-configuration.md:278
@@ -2421,14 +2425,23 @@ msgid ""
 "static build), or the gateway can serve it under `/_app/`. Serving it from "
 "the gateway means one process, one origin, no CORS setup and no second "
 "deployment."
-msgstr "O [webapp do Mycelium](https://github.com/LepistaBioinformatics/mycelium-webapp) é a interface de usuários e operadores: login, contas, tenants, convidados e federação. Ele pode rodar como um serviço próprio (nginx na frente do build estático), ou o gateway pode servi-lo em `/_app/`. Servi-lo pelo gateway significa um processo, uma origem, nenhuma configuração de CORS e nenhuma segunda implantação."
+msgstr ""
+"O [webapp do Mycelium](https://github.com/LepistaBioinformatics/mycelium-"
+"webapp) é a interface de usuários e operadores: login, contas, tenants, "
+"convidados e federação. Ele pode rodar como um serviço próprio (nginx na "
+"frente do build estático), ou o gateway pode servi-lo em `/_app/`. Servi-lo "
+"pelo gateway significa um processo, uma origem, nenhuma configuração de CORS "
+"e nenhuma segunda implantação."
 
 #: src/30-serving-the-webapp.md:9
 msgid ""
 "**Opt-in.** Serving the webapp needs the `webapp` cargo feature and an "
 "`[api.webapp]` section. Without either, `/_app/*` goes to the downstream "
 "router like any other path and nothing changes."
-msgstr "**Opcional.** Servir o webapp exige a feature cargo `webapp` e uma seção `[api.webapp]`. Sem qualquer uma delas, `/_app/*` vai para o roteador downstream como qualquer outro caminho e nada muda."
+msgstr ""
+"**Opcional.** Servir o webapp exige a feature cargo `webapp` e uma seção "
+"`[api.webapp]`. Sem qualquer uma delas, `/_app/*` vai para o roteador "
+"downstream como qualquer outro caminho e nada muda."
 
 #: src/30-serving-the-webapp.md:15 src/11-authentication-flows.md:13
 #: src/12-response-callbacks.md:13 src/16-webhooks.md:10
@@ -2440,7 +2453,10 @@ msgid ""
 "The gateway serves the files of a webapp build (its `dist/` directory) from "
 "disk, under the fixed prefix `/_app/`. The prefix cannot be changed, because "
 "the build itself is made for it."
-msgstr "O gateway serve os arquivos de um build do webapp (o diretório `dist/`) a partir do disco, sob o prefixo fixo `/_app/`. O prefixo não pode ser alterado, porque o próprio build é feito para ele."
+msgstr ""
+"O gateway serve os arquivos de um build do webapp (o diretório `dist/`) a "
+"partir do disco, sob o prefixo fixo `/_app/`. O prefixo não pode ser "
+"alterado, porque o próprio build é feito para ele."
 
 #: src/30-serving-the-webapp.md:20
 msgid ""
@@ -2448,7 +2464,11 @@ msgid ""
 "extension is answered with `index.html`, so deep links such as `/_app/"
 "dashboard/federation` survive a page reload. A missing file with an "
 "extension, such as `/_app/assets/missing.js`, is a 404."
-msgstr "Qualquer caminho sob `/_app/` que não seja um arquivo do build e não tenha extensão é respondido com o `index.html`, para que links diretos como `/_app/dashboard/federation` sobrevivam a um recarregamento da página. Um arquivo ausente com extensão, como `/_app/assets/missing.js`, é um 404."
+msgstr ""
+"Qualquer caminho sob `/_app/` que não seja um arquivo do build e não tenha "
+"extensão é respondido com o `index.html`, para que links diretos como `/_app/"
+"dashboard/federation` sobrevivam a um recarregamento da página. Um arquivo "
+"ausente com extensão, como `/_app/assets/missing.js`, é um 404."
 
 #: src/30-serving-the-webapp.md:24
 msgid ""
@@ -2456,7 +2476,11 @@ msgid ""
 "not go through the downstream router or authentication. The webapp then "
 "calls the gateway API (`/_adm/...`) on the same origin, with the user's "
 "token."
-msgstr "`/_app/*` é público, como os arquivos de qualquer site. As requisições sob ele não passam pelo roteador downstream nem pela autenticação. O webapp então chama a API do gateway (`/_adm/...`) na mesma origem, com o token do usuário."
+msgstr ""
+"`/_app/*` é público, como os arquivos de qualquer site. As requisições sob "
+"ele não passam pelo roteador downstream nem pela autenticação. O webapp "
+"então chama a API do gateway (`/_adm/...`) na mesma origem, com o token do "
+"usuário."
 
 #: src/30-serving-the-webapp.md:28
 msgid ""
@@ -2464,14 +2488,21 @@ msgid ""
 "build on their next visit. The hashed assets are cached for a year. Every "
 "answer carries `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: "
 "nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`."
-msgstr "O `index.html` e o service worker nunca são cacheados, então os usuários recebem um build novo na próxima visita. Os assets com hash ficam em cache por um ano. Toda resposta leva `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff` e `Referrer-Policy: strict-origin-when-cross-origin`."
+msgstr ""
+"O `index.html` e o service worker nunca são cacheados, então os usuários "
+"recebem um build novo na próxima visita. Os assets com hash ficam em cache "
+"por um ano. Toda resposta leva `X-Frame-Options: SAMEORIGIN`, `X-Content-"
+"Type-Options: nosniff` e `Referrer-Policy: strict-origin-when-cross-origin`."
 
 #: src/30-serving-the-webapp.md:33
 msgid ""
 "Requests that try to leave the build directory are never answered with a "
 "file outside it. That covers `..` segments, encoded traversals and symlinks "
 "pointing out."
-msgstr "Requisições que tentam sair do diretório do build nunca são respondidas com um arquivo de fora dele. Isso cobre segmentos `..`, traversals codificados e symlinks que apontam para fora."
+msgstr ""
+"Requisições que tentam sair do diretório do build nunca são respondidas com "
+"um arquivo de fora dele. Isso cobre segmentos `..`, traversals codificados e "
+"symlinks que apontam para fora."
 
 #: src/30-serving-the-webapp.md:39
 msgid "1. Build the gateway with the feature"
@@ -2493,7 +2524,9 @@ msgstr "# Modo postgres-only\n"
 msgid ""
 "The published Docker images are built without it. Build your own image with "
 "the feature to serve the webapp from a container."
-msgstr "As imagens Docker publicadas são compiladas sem ela. Compile a sua própria imagem com a feature para servir o webapp a partir de um container."
+msgstr ""
+"As imagens Docker publicadas são compiladas sem ela. Compile a sua própria "
+"imagem com a feature para servir o webapp a partir de um container."
 
 #: src/30-serving-the-webapp.md:59
 msgid "2. Build the webapp for `/_app/`"
@@ -2502,7 +2535,8 @@ msgstr "2. Compile o webapp para `/_app/`"
 #: src/30-serving-the-webapp.md:61
 msgid ""
 "From a checkout of the webapp, at the version that matches your gateway:"
-msgstr "A partir de um checkout do webapp, na versão compatível com o seu gateway:"
+msgstr ""
+"A partir de um checkout do webapp, na versão compatível com o seu gateway:"
 
 #: src/30-serving-the-webapp.md:65
 msgid "/_app/"
@@ -2512,20 +2546,27 @@ msgstr "/_app/"
 msgid ""
 "`VITE_BASE_PATH=/_app/` makes every asset, route and the service worker "
 "resolve under `/_app/`."
-msgstr "`VITE_BASE_PATH=/_app/` faz todos os assets, as rotas e o service worker resolverem sob `/_app/`."
+msgstr ""
+"`VITE_BASE_PATH=/_app/` faz todos os assets, as rotas e o service worker "
+"resolverem sob `/_app/`."
 
 #: src/30-serving-the-webapp.md:70
 msgid ""
 "The empty `VITE_MYCELIUM_API_URL=` makes the webapp call the API on its own "
 "origin. Keep it empty even when a local `.env` file sets it, because the "
 "value from the shell wins."
-msgstr "O `VITE_MYCELIUM_API_URL=` vazio faz o webapp chamar a API na própria origem. Mantenha-o vazio mesmo quando um arquivo `.env` local o define, porque o valor do shell prevalece."
+msgstr ""
+"O `VITE_MYCELIUM_API_URL=` vazio faz o webapp chamar a API na própria "
+"origem. Mantenha-o vazio mesmo quando um arquivo `.env` local o define, "
+"porque o valor do shell prevalece."
 
 #: src/30-serving-the-webapp.md:74
 msgid ""
 "The output is `dist/`. The same build works on any gateway, since it holds "
 "no URL and no client id."
-msgstr "A saída é o `dist/`. O mesmo build funciona em qualquer gateway, já que não contém URL nem client id."
+msgstr ""
+"A saída é o `dist/`. O mesmo build funciona em qualquer gateway, já que não "
+"contém URL nem client id."
 
 #: src/30-serving-the-webapp.md:77
 msgid "3. Configure the gateway"
@@ -2535,7 +2576,9 @@ msgstr "3. Configure o gateway"
 msgid ""
 "Point `distDir` to the build and name the hosted login client the webapp "
 "signs in with:"
-msgstr "Aponte o `distDir` para o build e informe o cliente do hosted login com que o webapp faz o login:"
+msgstr ""
+"Aponte o `distDir` para o build e informe o cliente do hosted login com que "
+"o webapp faz o login:"
 
 #: src/30-serving-the-webapp.md:82
 msgid ""
@@ -2556,7 +2599,10 @@ msgid ""
 "`hostedLoginClientId` is optional. When set, `GET /app-config` publishes it, "
 "and the webapp offers the gateway-hosted login with that client. The client "
 "must exist and accept the webapp's callback:"
-msgstr "O `hostedLoginClientId` é opcional. Quando definido, o `GET /app-config` o publica, e o webapp oferece o login hospedado pelo gateway com esse cliente. O cliente precisa existir e aceitar o callback do webapp:"
+msgstr ""
+"O `hostedLoginClientId` é opcional. Quando definido, o `GET /app-config` o "
+"publica, e o webapp oferece o login hospedado pelo gateway com esse cliente. "
+"O cliente precisa existir e aceitar o callback do webapp:"
 
 #: src/30-serving-the-webapp.md:92
 msgid ""
@@ -2571,14 +2617,16 @@ msgstr ""
 "```toml\n"
 "[auth.hostedLogin.define]\n"
 "clients = [\n"
-"  { clientId = \"webapp-01\", redirectUris = [\"https://myc-01.example.com/_app/callback\"] },\n"
+"  { clientId = \"webapp-01\", redirectUris = [\"https://myc-01.example.com/"
+"_app/callback\"] },\n"
 "]\n"
 "```"
 
 #: src/30-serving-the-webapp.md:99
 msgid ""
 "The callback is your gateway's public origin followed by `/_app/callback`."
-msgstr "O callback é a origem pública do seu gateway seguida de `/_app/callback`."
+msgstr ""
+"O callback é a origem pública do seu gateway seguida de `/_app/callback`."
 
 #: src/30-serving-the-webapp.md:101
 msgid "4. Open it"
@@ -2590,7 +2638,11 @@ msgid ""
 "instance asks for its first staff account to be claimed before anyone can "
 "sign in. Claim it at `/_adm/instance/bootstrap` with "
 "`core.accountLifeCycle.staffBootstrapSecret`."
-msgstr "Inicie o gateway e abra `https://myc-01.example.com/_app/`. Uma instância nova pede que a primeira conta staff seja reivindicada antes que alguém possa fazer login. Reivindique-a em `/_adm/instance/bootstrap` com o `core.accountLifeCycle.staffBootstrapSecret`."
+msgstr ""
+"Inicie o gateway e abra `https://myc-01.example.com/_app/`. Uma instância "
+"nova pede que a primeira conta staff seja reivindicada antes que alguém "
+"possa fazer login. Reivindique-a em `/_adm/instance/bootstrap` com o "
+"`core.accountLifeCycle.staffBootstrapSecret`."
 
 #: src/30-serving-the-webapp.md:108
 msgid "With Docker"
@@ -2600,13 +2652,17 @@ msgstr "Com Docker"
 msgid ""
 "Mount the build into a gateway image built with the feature, and point "
 "`distDir` at the mount:"
-msgstr "Monte o build numa imagem do gateway compilada com a feature e aponte o `distDir` para a montagem:"
+msgstr ""
+"Monte o build numa imagem do gateway compilada com a feature e aponte o "
+"`distDir` para a montagem:"
 
 #: src/30-serving-the-webapp.md:120
 msgid ""
 "`my-registry/mycelium-api-webapp` stands for your own image of the gateway, "
 "built with `--features webapp`."
-msgstr "`my-registry/mycelium-api-webapp` representa a sua própria imagem do gateway, compilada com `--features webapp`."
+msgstr ""
+"`my-registry/mycelium-api-webapp` representa a sua própria imagem do "
+"gateway, compilada com `--features webapp`."
 
 #: src/30-serving-the-webapp.md:125
 msgid "Startup checks"
@@ -2616,7 +2672,9 @@ msgstr "Verificações na inicialização"
 msgid ""
 "The gateway refuses to start, with an error naming the problem and the path, "
 "when `[api.webapp]` is set and:"
-msgstr "O gateway se recusa a iniciar, com um erro que indica o problema e o caminho, quando `[api.webapp]` está definido e:"
+msgstr ""
+"O gateway se recusa a iniciar, com um erro que indica o problema e o "
+"caminho, quando `[api.webapp]` está definido e:"
 
 #: src/30-serving-the-webapp.md:130
 msgid "the binary was built without the `webapp` feature,"
@@ -2634,7 +2692,9 @@ msgstr "o `distDir` não tem `index.html`."
 msgid ""
 "It also logs a warning for each downstream route configured under `/_app`, "
 "since those routes cannot be reached while the webapp is served."
-msgstr "Ele também registra um aviso para cada rota downstream configurada sob `/_app`, já que essas rotas ficam inacessíveis enquanto o webapp é servido."
+msgstr ""
+"Ele também registra um aviso para cada rota downstream configurada sob `/"
+"_app`, já que essas rotas ficam inacessíveis enquanto o webapp é servido."
 
 #: src/30-serving-the-webapp.md:141
 msgid "Symptom"
@@ -2660,7 +2720,9 @@ msgstr "Chamadas à API vão para outro host"
 msgid ""
 "`VITE_MYCELIUM_API_URL` was set during the build, possibly from a `.env` "
 "file. Rebuild with it empty."
-msgstr "O `VITE_MYCELIUM_API_URL` foi definido durante o build, possivelmente por um arquivo `.env`. Compile de novo com ele vazio."
+msgstr ""
+"O `VITE_MYCELIUM_API_URL` foi definido durante o build, possivelmente por um "
+"arquivo `.env`. Compile de novo com ele vazio."
 
 #: src/30-serving-the-webapp.md:145
 msgid "No hosted login option"
@@ -2670,7 +2732,9 @@ msgstr "Nenhuma opção de login hospedado"
 msgid ""
 "`hostedLoginClientId` is not set, so `GET /app-config` has no "
 "`hostedLoginClientId`."
-msgstr "O `hostedLoginClientId` não está definido, então o `GET /app-config` não traz `hostedLoginClientId`."
+msgstr ""
+"O `hostedLoginClientId` não está definido, então o `GET /app-config` não "
+"traz `hostedLoginClientId`."
 
 #: src/30-serving-the-webapp.md:146
 msgid "Login fails after the gateway's sign-in page"
@@ -2688,13 +2752,17 @@ msgstr "`/_app/` responde como uma rota downstream"
 msgid ""
 "The gateway was built without the `webapp` feature, or `[api.webapp]` is "
 "missing."
-msgstr "O gateway foi compilado sem a feature `webapp`, ou falta a seção `[api.webapp]`."
+msgstr ""
+"O gateway foi compilado sem a feature `webapp`, ou falta a seção "
+"`[api.webapp]`."
 
 #: src/30-serving-the-webapp.md:149
 msgid ""
 "To upgrade the webapp, replace the contents of `distDir`. No restart is "
 "needed: the next page load picks up the new `index.html`."
-msgstr "Para atualizar o webapp, substitua o conteúdo do `distDir`. Não é preciso reiniciar: o próximo carregamento da página já pega o novo `index.html`."
+msgstr ""
+"Para atualizar o webapp, substitua o conteúdo do `distDir`. Não é preciso "
+"reiniciar: o próximo carregamento da página já pega o novo `index.html`."
 
 #: src/01-authorization.md:3
 msgid ""
@@ -5330,7 +5398,7 @@ msgstr "Variável"
 
 #: src/27-downstream-profile-signature.md:140 src/28-identity-linking.md:91
 #: src/29-federated-grants.md:42 src/29-federated-grants.md:246
-#: src/17-error-codes.md:44 src/14-json-rpc.md:371
+#: src/17-error-codes.md:41 src/14-json-rpc.md:371
 #: src/22-hmac-key-rotation.md:122
 msgid "Meaning"
 msgstr "Significado"
@@ -8702,19 +8770,19 @@ msgstr ""
 msgid "Via JSON-RPC"
 msgstr "Via JSON-RPC"
 
-#: src/16-webhooks.md:56 src/17-error-codes.md:64 src/17-error-codes.md:79
+#: src/16-webhooks.md:56 src/17-error-codes.md:61 src/17-error-codes.md:76
 #: src/14-json-rpc.md:24 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50 src/14-json-rpc.md:360
 msgid "\"jsonrpc\""
 msgstr ""
 
-#: src/16-webhooks.md:56 src/17-error-codes.md:64 src/17-error-codes.md:79
+#: src/16-webhooks.md:56 src/17-error-codes.md:61 src/17-error-codes.md:76
 #: src/14-json-rpc.md:24 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50 src/14-json-rpc.md:360
 msgid "\"2.0\""
 msgstr ""
 
-#: src/16-webhooks.md:57 src/17-error-codes.md:65 src/17-error-codes.md:80
+#: src/16-webhooks.md:57 src/17-error-codes.md:62 src/17-error-codes.md:77
 #: src/14-json-rpc.md:25 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50
 msgid "\"method\""
@@ -8724,7 +8792,7 @@ msgstr ""
 msgid "\"systemManager.webhooks.create\""
 msgstr ""
 
-#: src/16-webhooks.md:58 src/17-error-codes.md:66 src/17-error-codes.md:81
+#: src/16-webhooks.md:58 src/17-error-codes.md:63 src/17-error-codes.md:78
 #: src/14-json-rpc.md:26 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50
 msgid "\"params\""
@@ -8750,7 +8818,7 @@ msgstr ""
 msgid "\"isActive\""
 msgstr ""
 
-#: src/16-webhooks.md:63 src/17-error-codes.md:71 src/17-error-codes.md:82
+#: src/16-webhooks.md:63 src/17-error-codes.md:68 src/17-error-codes.md:79
 #: src/14-json-rpc.md:27 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50 src/14-json-rpc.md:365
 msgid "\"id\""
@@ -8839,7 +8907,7 @@ msgstr "Uma conta de usuário é excluída"
 msgid "Managing webhooks"
 msgstr "Gerenciando webhooks"
 
-#: src/16-webhooks.md:98 src/17-error-codes.md:90
+#: src/16-webhooks.md:98 src/17-error-codes.md:109
 msgid "JSON-RPC method"
 msgstr "Método JSON-RPC"
 
@@ -9001,7 +9069,7 @@ msgstr ""
 "Quando um caso de uso retorna um erro de domínio com um código, o Mycelium "
 "inclui esse código no corpo da resposta HTTP:"
 
-#: src/17-error-codes.md:16 src/17-error-codes.md:68 src/14-json-rpc.md:363
+#: src/17-error-codes.md:16 src/17-error-codes.md:65 src/14-json-rpc.md:363
 msgid "\"message\""
 msgstr "\"message\""
 
@@ -9009,7 +9077,7 @@ msgstr "\"message\""
 msgid "\"Account not found.\""
 msgstr "\"Conta não encontrada.\""
 
-#: src/17-error-codes.md:17 src/17-error-codes.md:67 src/14-json-rpc.md:362
+#: src/17-error-codes.md:17 src/17-error-codes.md:64 src/14-json-rpc.md:362
 msgid "\"code\""
 msgstr "\"code\""
 
@@ -9017,7 +9085,7 @@ msgstr "\"code\""
 msgid "\"MYC00023\""
 msgstr "\"MYC00023\""
 
-#: src/17-error-codes.md:18 src/17-error-codes.md:69
+#: src/17-error-codes.md:18 src/17-error-codes.md:66
 msgid "\"details\""
 msgstr "\"details\""
 
@@ -9040,29 +9108,21 @@ msgstr "Códigos de erro nativos"
 
 #: src/17-error-codes.md:29
 msgid ""
-"The built-in (native) error codes are seeded into the database on first run "
-"using the CLI:"
-msgstr ""
-"Os códigos de erro nativos (integrados) são semeados no banco de dados na "
-"primeira execução usando a CLI:"
+"The built-in (native) error codes are defined in the gateway itself, so they "
+"need no installation step: every listing and lookup serves them straight "
+"from the code, ahead of the custom codes stored in the database. Their "
+"message, details and `isInternal` flag always match the running version."
+msgstr "Os códigos de erro nativos são definidos no próprio gateway, então não precisam de nenhuma etapa de instalação: toda listagem e consulta os serve direto do código, antes dos códigos customizados guardados no banco. A mensagem, os detalhes e o campo `isInternal` sempre correspondem à versão em execução."
 
-#: src/17-error-codes.md:35
+#: src/17-error-codes.md:34
 msgid ""
-"This command is run once during installation. It populates the database with "
-"all error codes that the core domain layer uses internally. Without this "
-"step, error responses that carry domain codes will have no human-readable "
-"message attached."
-msgstr ""
-"Este comando é executado uma vez durante a instalação. Ele popula o banco de "
-"dados com todos os códigos de erro que a camada de domínio central usa "
-"internamente. Sem esta etapa, as respostas de erro que carregam códigos de "
-"domínio não terão mensagem legível anexada."
+"The CLI command `myc-cli native-errors init`, which used to copy them into "
+"the database, is no longer needed. Native rows it stored earlier are ignored "
+"by listings and lookups, so they can neither duplicate nor contradict the "
+"built-in definitions. See [CLI Reference](./18-cli.md)."
+msgstr "O comando de CLI `myc-cli native-errors init`, que antes os copiava para o banco, não é mais necessário. As linhas nativas que ele gravou antes são ignoradas pelas listagens e consultas, então não duplicam nem contradizem as definições embutidas. Veja a [Referência da CLI](./18-cli.md)."
 
-#: src/17-error-codes.md:39
-msgid "See [CLI Reference](./18-cli.md) for full usage."
-msgstr "Consulte a [Referência da CLI](./18-cli.md) para uso completo."
-
-#: src/17-error-codes.md:41
+#: src/17-error-codes.md:38
 msgid ""
 "Profile signing adds three internal codes (see [Downstream Profile Signature]"
 "(./27-downstream-profile-signature.md)):"
@@ -9070,16 +9130,16 @@ msgstr ""
 "A assinatura de profile adiciona três códigos internos (veja [Assinatura de "
 "Profile Downstream](./27-downstream-profile-signature.md)):"
 
-#: src/17-error-codes.md:44 src/14-json-rpc.md:371
+#: src/17-error-codes.md:41 src/14-json-rpc.md:371
 #: src/22-hmac-key-rotation.md:122
 msgid "Code"
 msgstr "Código"
 
-#: src/17-error-codes.md:46
+#: src/17-error-codes.md:43
 msgid "`MYC00041`"
 msgstr "`MYC00041`"
 
-#: src/17-error-codes.md:46
+#: src/17-error-codes.md:43
 msgid ""
 "A profile signing key could not be derived from "
 "`core.accountLifeCycle.hmacSecrets` (secret unresolved or self-test failed); "
@@ -9089,11 +9149,11 @@ msgstr ""
 "`core.accountLifeCycle.hmacSecrets` (segredo não resolvido ou falha no "
 "autoteste); o gateway se recusa a iniciar"
 
-#: src/17-error-codes.md:47
+#: src/17-error-codes.md:44
 msgid "`MYC00042`"
 msgstr "`MYC00042`"
 
-#: src/17-error-codes.md:47
+#: src/17-error-codes.md:44
 msgid ""
 "The profile signature could not be issued for a request; the request is not "
 "forwarded"
@@ -9101,11 +9161,11 @@ msgstr ""
 "Não foi possível gerar a assinatura do profile para uma requisição; a "
 "requisição não é encaminhada"
 
-#: src/17-error-codes.md:48
+#: src/17-error-codes.md:45
 msgid "`MYC00043`"
 msgstr "`MYC00043`"
 
-#: src/17-error-codes.md:48
+#: src/17-error-codes.md:45
 msgid ""
 "Invalid verification setting in a Rust downstream service "
 "(`GatewayProfileData`): an invalid `MYCELIUM_JWKS_URL`, tolerance or "
@@ -9118,11 +9178,11 @@ msgstr ""
 "um conjunto de chaves publicado inseguro; as requisições falham de forma "
 "fechada"
 
-#: src/17-error-codes.md:52
+#: src/17-error-codes.md:49
 msgid "Custom error codes"
 msgstr "Códigos de erro personalizados"
 
-#: src/17-error-codes.md:54
+#: src/17-error-codes.md:51
 msgid ""
 "You can define additional error codes for your own downstream services. This "
 "lets you publish a shared error vocabulary between the gateway and the "
@@ -9132,7 +9192,7 @@ msgstr ""
 "downstream. Isso permite publicar um vocabulário de erros compartilhado "
 "entre o gateway e os serviços atrás dele."
 
-#: src/17-error-codes.md:57
+#: src/17-error-codes.md:54
 msgid ""
 "Custom codes are managed through the `systemManager.errorCodes.*` JSON-RPC "
 "methods or the equivalent REST routes. Requires the **system-manager** role."
@@ -9141,86 +9201,148 @@ msgstr ""
 "`systemManager.errorCodes.*` ou pelas rotas REST equivalentes. Requer o "
 "papel **system-manager**."
 
-#: src/17-error-codes.md:60 src/14-json-rpc.md:189
+#: src/17-error-codes.md:57 src/14-json-rpc.md:189
 msgid "Create a custom error code"
 msgstr "Criar um código de erro personalizado"
 
-#: src/17-error-codes.md:65
+#: src/17-error-codes.md:62
 msgid "\"systemManager.errorCodes.create\""
 msgstr "\"systemManager.errorCodes.create\""
 
-#: src/17-error-codes.md:67
+#: src/17-error-codes.md:64
 msgid "\"SVC00001\""
 msgstr "\"SVC00001\""
 
-#: src/17-error-codes.md:68
+#: src/17-error-codes.md:65
 msgid "\"User has exceeded their rate limit.\""
 msgstr "\"O usuário excedeu o limite de requisições.\""
 
-#: src/17-error-codes.md:69
+#: src/17-error-codes.md:66
 msgid ""
 "\"The account has made more requests than allowed in the current window.\""
 msgstr "\"A conta fez mais requisições do que o permitido na janela atual.\""
 
-#: src/17-error-codes.md:75 src/14-json-rpc.md:190
+#: src/17-error-codes.md:72 src/14-json-rpc.md:190
 msgid "List all error codes"
 msgstr "Listar todos os códigos de erro"
 
-#: src/17-error-codes.md:80
+#: src/17-error-codes.md:77
 msgid "\"systemManager.errorCodes.list\""
 msgstr "\"systemManager.errorCodes.list\""
 
-#: src/17-error-codes.md:88
+#: src/17-error-codes.md:85
+msgid "Public error code lookup"
+msgstr "Consulta pública de códigos de erro"
+
+#: src/17-error-codes.md:87
+msgid ""
+"People who receive an error code (e.g. `MYC00023`) can look it up without "
+"signing in. The public endpoint returns only the codes registered with "
+"`isInternal = false`; internal codes are never listed."
+msgstr ""
+"Quem recebe um código de erro (por exemplo, `MYC00023`) pode consultá-lo sem "
+"fazer login. O endpoint público retorna apenas os códigos registrados com "
+"`isInternal = false`; códigos internos nunca são listados."
+
+#: src/17-error-codes.md:92
+msgid "\"https://gateway.example.com/error-codes?prefix=MYC&code=23\""
+msgstr "\"https://gateway.example.com/error-codes?prefix=MYC&code=23\""
+
+#: src/17-error-codes.md:95
+msgid "Query parameter"
+msgstr "Parâmetro de query"
+
+#: src/17-error-codes.md:97
+msgid "`prefix`"
+msgstr "`prefix`"
+
+#: src/17-error-codes.md:97
+msgid "Filter by prefix (e.g. `MYC`)"
+msgstr "Filtra pelo prefixo (por exemplo, `MYC`)"
+
+#: src/17-error-codes.md:98
+msgid "`code`"
+msgstr "`code`"
+
+#: src/17-error-codes.md:98
+msgid "Filter by error number (e.g. `23` for `MYC00023`)"
+msgstr "Filtra pelo número do erro (por exemplo, `23` para `MYC00023`)"
+
+#: src/17-error-codes.md:99
+msgid "`pageSize`"
+msgstr "`pageSize`"
+
+#: src/17-error-codes.md:99
+msgid "Page size; capped at 100"
+msgstr "Tamanho da página; limitado a 100"
+
+#: src/17-error-codes.md:100
+msgid "`skip`"
+msgstr "`skip`"
+
+#: src/17-error-codes.md:100
+msgid "Number of records to skip"
+msgstr "Número de registros a pular"
+
+#: src/17-error-codes.md:102
+msgid ""
+"The response is `200` with a paginated body (`count`, `skip`, `size`, "
+"`records`), `204` when no code matches, and `500` on a repository failure."
+msgstr ""
+"A resposta é `200` com um corpo paginado (`count`, `skip`, `size`, "
+"`records`), `204` quando nenhum código corresponde e `500` em caso de falha "
+"no repositório."
+
+#: src/17-error-codes.md:107
 msgid "Error code API reference"
 msgstr "Referência da API de códigos de erro"
 
-#: src/17-error-codes.md:92 src/14-json-rpc.md:189
+#: src/17-error-codes.md:111 src/14-json-rpc.md:189
 msgid "`systemManager.errorCodes.create`"
 msgstr "`systemManager.errorCodes.create`"
 
-#: src/17-error-codes.md:92
+#: src/17-error-codes.md:111
 msgid "Register a new error code"
 msgstr "Registrar um novo código de erro"
 
-#: src/17-error-codes.md:93 src/14-json-rpc.md:190
+#: src/17-error-codes.md:112 src/14-json-rpc.md:190
 msgid "`systemManager.errorCodes.list`"
 msgstr "`systemManager.errorCodes.list`"
 
-#: src/17-error-codes.md:93
+#: src/17-error-codes.md:112
 msgid "List all error codes (native + custom)"
 msgstr "Listar todos os códigos de erro (nativos + personalizados)"
 
-#: src/17-error-codes.md:94 src/14-json-rpc.md:191
+#: src/17-error-codes.md:113 src/14-json-rpc.md:191
 msgid "`systemManager.errorCodes.get`"
 msgstr "`systemManager.errorCodes.get`"
 
-#: src/17-error-codes.md:94
+#: src/17-error-codes.md:113
 msgid "Get a single error code by code string"
 msgstr "Obter um único código de erro pela string do código"
 
-#: src/17-error-codes.md:95 src/14-json-rpc.md:192
+#: src/17-error-codes.md:114 src/14-json-rpc.md:192
 msgid "`systemManager.errorCodes.updateMessageAndDetails`"
 msgstr "`systemManager.errorCodes.updateMessageAndDetails`"
 
-#: src/17-error-codes.md:95
+#: src/17-error-codes.md:114
 msgid "Update an existing code's message and details"
 msgstr "Atualizar a mensagem e detalhes de um código existente"
 
-#: src/17-error-codes.md:96 src/14-json-rpc.md:193
+#: src/17-error-codes.md:115 src/14-json-rpc.md:193
 msgid "`systemManager.errorCodes.delete`"
 msgstr "`systemManager.errorCodes.delete`"
 
-#: src/17-error-codes.md:96
+#: src/17-error-codes.md:115
 msgid "Remove a custom error code"
 msgstr "Remover um código de erro personalizado"
 
-#: src/17-error-codes.md:98
+#: src/17-error-codes.md:117
 msgid ""
-"Native error codes (prefixed `MYC`) cannot be deleted — only their message "
-"and details can be updated if you want to localize them."
-msgstr ""
-"Códigos de erro nativos (com prefixo `MYC`) não podem ser excluídos — apenas "
-"sua mensagem e detalhes podem ser atualizados se você quiser localizá-los."
+"Native error codes (prefixed `MYC`) are read-only: updating or deleting them "
+"is refused (`MYC00018`), and custom codes cannot be registered under the "
+"`MYC` prefix."
+msgstr "Os códigos de erro nativos (prefixo `MYC`) são somente leitura: atualizá-los ou apagá-los é recusado (`MYC00018`), e não é possível registrar códigos customizados com o prefixo `MYC`."
 
 #: src/13-mcp.md:1
 msgid "MCP — AI Agent Integration"
@@ -13696,6 +13818,35 @@ msgstr ""
 "ciclo é o fluxo de identidade/perfil de uma requisição; use-os para comparar "
 "a primeira requisição (geralmente mais `resolved`) vs. requisições "
 "posteriores (geralmente mais `from_cache`)."
+
+#~ msgid ""
+#~ "The built-in (native) error codes are seeded into the database on first "
+#~ "run using the CLI:"
+#~ msgstr ""
+#~ "Os códigos de erro nativos (integrados) são semeados no banco de dados na "
+#~ "primeira execução usando a CLI:"
+
+#~ msgid ""
+#~ "This command is run once during installation. It populates the database "
+#~ "with all error codes that the core domain layer uses internally. Without "
+#~ "this step, error responses that carry domain codes will have no human-"
+#~ "readable message attached."
+#~ msgstr ""
+#~ "Este comando é executado uma vez durante a instalação. Ele popula o banco "
+#~ "de dados com todos os códigos de erro que a camada de domínio central usa "
+#~ "internamente. Sem esta etapa, as respostas de erro que carregam códigos "
+#~ "de domínio não terão mensagem legível anexada."
+
+#~ msgid "See [CLI Reference](./18-cli.md) for full usage."
+#~ msgstr "Consulte a [Referência da CLI](./18-cli.md) para uso completo."
+
+#~ msgid ""
+#~ "Native error codes (prefixed `MYC`) cannot be deleted — only their "
+#~ "message and details can be updated if you want to localize them."
+#~ msgstr ""
+#~ "Códigos de erro nativos (com prefixo `MYC`) não podem ser excluídos — "
+#~ "apenas sua mensagem e detalhes podem ser atualizados se você quiser "
+#~ "localizá-los."
 
 #~ msgid "If you are not using Python, decode `x-mycelium-profile` manually:"
 #~ msgstr ""

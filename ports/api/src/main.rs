@@ -199,7 +199,7 @@ use rest::{
     hosted_login::configure as configure_hosted_login_endpoints,
     index::{
         app_public_config_endpoints, heath_check_endpoints,
-        profile_signing_jwks_endpoints,
+        profile_signing_jwks_endpoints, public_error_code_endpoints,
     },
     instance as instance_endpoints,
     manager::{
@@ -846,6 +846,10 @@ pub async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/app-config")
                     .configure(app_public_config_endpoints::configure),
+            )
+            .service(
+                web::scope("/error-codes")
+                    .configure(public_error_code_endpoints::configure),
             )
             //
             // The well known openid configuration path
