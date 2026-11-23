@@ -63,6 +63,7 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
         prefix: Option<String>,
         code: Option<i32>,
         is_internal: Option<bool>,
+        is_native: Option<bool>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<ErrorCode>, MappedErrors> {
@@ -88,6 +89,12 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
 
         if let Some(is_internal) = is_internal {
             let stm = error_code_model::is_internal.eq(is_internal);
+            records_query = records_query.filter(stm);
+            total_query = total_query.filter(stm);
+        }
+
+        if let Some(is_native) = is_native {
+            let stm = error_code_model::is_native.eq(is_native);
             records_query = records_query.filter(stm);
             total_query = total_query.filter(stm);
         }

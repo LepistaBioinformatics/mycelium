@@ -9,11 +9,9 @@ use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use mycelium_openapi::OpenApiSchema;
 use std::{collections::HashMap, sync::Arc};
 
-#[derive(Debug, Clone)]
-pub struct ServiceOpenApiSchema {
-    pub operations: Vec<ToolOperation>,
-    pub docs: HashMap<String, OpenApiSchema>,
-}
+/// The operations and OpenAPI documents of the downstream services
+pub(super) type DownstreamCatalog =
+    (Vec<ToolOperation>, HashMap<String, OpenApiSchema>);
 
 #[tracing::instrument(
     name = "load_operations_from_downstream_services",
@@ -22,7 +20,7 @@ pub struct ServiceOpenApiSchema {
 pub(super) async fn load_operations_from_downstream_services(
     services: Vec<Service>,
     app_modules: Arc<MemDbAppModule>,
-) -> Result<ServiceOpenApiSchema, MappedErrors> {
+) -> Result<DownstreamCatalog, MappedErrors> {
     let mut operations = Vec::new();
     let mut docs = HashMap::new();
 
@@ -78,5 +76,5 @@ pub(super) async fn load_operations_from_downstream_services(
         docs.insert(service.name, doc);
     }
 
-    Ok(ServiceOpenApiSchema { operations, docs })
+    Ok((operations, docs))
 }

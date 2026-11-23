@@ -55,4 +55,8 @@ pub struct ListOperationsParams {
     pub page_size: Option<usize>,
     #[schemars(description = "Number of records to skip")]
     pub skip: Option<usize>,
+    #[schemars(
+        description = "Leave out the gateway's own operations (service mag)"
+    )]
+    pub exclude_gateway: Option<bool>,
 }

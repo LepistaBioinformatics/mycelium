@@ -1,6 +1,8 @@
 use crate::{
     dtos::{MyceliumProfileData, ToolOperation},
-    openapi_processor::{list_operations, ServiceOpenApiSchema},
+    openapi_processor::{
+        list_operations, OperationFilters, ServiceOpenApiSchema,
+    },
     rest::shared::PaginationParams,
 };
 
@@ -30,6 +32,8 @@ pub struct ListOperationsParams {
     query: Option<String>,
     method: Option<String>,
     score_cutoff: Option<usize>,
+    /// Leave out the gateway's own operations (service mag)
+    exclude_gateway: Option<bool>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -81,11 +85,16 @@ pub async fn list_operations_url(
     profile: MyceliumProfileData,
     app_module: web::Data<ServiceOpenApiSchema>,
 ) -> impl Responder {
+    let filters = OperationFilters {
+        method: query.method.to_owned(),
+        query: query.query.to_owned(),
+        score_cutoff: query.score_cutoff.to_owned(),
+        exclude_gateway: query.exclude_gateway.unwrap_or(false),
+    };
+
     match list_operations(
         profile.to_profile(),
-        query.query.to_owned(),
-        query.method.to_owned(),
-        query.score_cutoff.to_owned(),
+        filters,
         page.page_size.map(|s| s as usize),
         page.skip.map(|s| s as usize),
         app_module.clone(),

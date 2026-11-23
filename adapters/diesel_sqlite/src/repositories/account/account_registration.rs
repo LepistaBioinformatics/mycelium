@@ -158,6 +158,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         manager_account_on_tenant::tenant_id.eq(tenant_id_text),
                         manager_account_on_tenant::account_id
                             .eq(&new_account.id),
+                        // NOT NULL without a default in SQLite (Postgres
+                        // defaults it to now()).
+                        manager_account_on_tenant::created
+                            .eq(&new_account.created),
                     ))
                     .execute(conn)?;
 
@@ -777,6 +781,61 @@ mod tests {
         assert!(after_delete.is_deleted);
         assert!(!after_delete.is_active);
         assert_eq!(after_delete.name, format!("{account_id}-deleted"));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn creates_the_tenant_management_account() -> Result<(), MappedErrors>
+    {
+        let db = setup_temp_db();
+        let tenant_id = Uuid::new_v4();
+
+        {
+            use crate::schema::tenant;
+
+            let conn = &mut db.provider.get_pool().get().unwrap();
+            diesel::insert_into(tenant::table)
+                .values((
+                    tenant::id.eq(uuid_to_text(&tenant_id)),
+                    tenant::name.eq("Tenant 01"),
+                    tenant::created
+                        .eq(naive_timestamp_to_text(&Local::now().naive_utc())),
+                ))
+                .execute(conn)
+                .unwrap();
+        }
+
+        let registration = AccountRegistrationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+
+        let account = Account::new_tenant_management_account(
+            "Tenant 01 management".into(),
+            tenant_id,
+            None,
+        );
+
+        let created = registration
+            .get_or_create_tenant_management_account(account, tenant_id)
+            .await?;
+
+        assert!(
+            matches!(created, GetOrCreateResponseKind::Created(_)),
+            "the management account must be created"
+        );
+
+        let conn = &mut db.provider.get_pool().get().unwrap();
+        let links = manager_account_on_tenant::table
+            .filter(
+                manager_account_on_tenant::tenant_id
+                    .eq(uuid_to_text(&tenant_id)),
+            )
+            .count()
+            .get_result::<i64>(conn)
+            .unwrap();
+
+        assert_eq!(links, 1);
 
         Ok(())
     }

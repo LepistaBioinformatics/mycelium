@@ -1,8 +1,12 @@
 use crate::domain::{
     actors::SystemActor,
-    dtos::{error_code::ErrorCode, profile::Profile},
+    dtos::{
+        error_code::ErrorCode, error_code_filters::ErrorCodeFilters,
+        profile::Profile,
+    },
     entities::ErrorCodeFetching,
 };
+use crate::use_cases::shared::error_codes::list_native_then_custom_error_codes;
 
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
@@ -10,8 +14,9 @@ use mycelium_base::{
 
 /// List all error codes
 ///
-/// This function should be used to list all error codes in the application.
-/// This action should be only performed by any registered and active user.
+/// The in-code native error codes come first, then the custom codes stored
+/// in the database, as one paginated result. This action should be only
+/// performed by system managers.
 #[tracing::instrument(
     name = "list_error_codes",
     skip(profile, page_size, skip, error_code_fetching_repo)
@@ -39,7 +44,17 @@ pub async fn list_error_codes(
     // ? List data repository error codes
     // ? -----------------------------------------------------------------------
 
-    error_code_fetching_repo
-        .list(prefix, code, is_internal, page_size, skip)
-        .await
+    let filters = ErrorCodeFilters {
+        prefix,
+        code,
+        is_internal,
+    };
+
+    list_native_then_custom_error_codes(
+        filters,
+        page_size,
+        skip,
+        error_code_fetching_repo,
+    )
+    .await
 }
