@@ -84,13 +84,13 @@ pub async fn guest_user_to_subscription_manager_account(
 
     let (read_role_id, write_role_id, role_name) =
         if let AccountType::RoleAssociated {
-            tenant_id,
+            tenant_id: account_tenant_id,
             read_role_id,
             write_role_id,
             role_name,
         } = account.account_type
         {
-            if tenant_id != tenant_id {
+            if account_tenant_id != tenant_id {
                 return use_case_err(format!(
                     "Account is not a subscription manager account: {}",
                     account_id
@@ -101,9 +101,10 @@ pub async fn guest_user_to_subscription_manager_account(
 
             (read_role_id, write_role_id, role_name)
         } else {
-            return use_case_err(
+            return use_case_err(format!(
                 "Account is not a subscription manager account: {}",
-            )
+                account_id
+            ))
             .with_code(NativeErrorCodes::MYC00018)
             .as_error();
         };
@@ -183,4 +184,153 @@ pub async fn guest_user_to_subscription_manager_account(
     // ? -----------------------------------------------------------------------
 
     Ok(guest_user)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        domain::{
+            dtos::{
+                account::Account, related_accounts::RelatedAccounts,
+                telegram::TelegramUserId,
+            },
+            entities::{MockLocalMessageWrite, MockTenantFetching},
+        },
+        models::{HmacSecretEntry, HmacSecretSet},
+    };
+
+    use async_trait::async_trait;
+    use myc_config::secret_resolver::SecretResolver;
+    use mycelium_base::entities::FetchManyResponseKind;
+
+    fn config() -> AccountLifeCycle {
+        AccountLifeCycle {
+            domain_name: SecretResolver::Value("example.com".to_string()),
+            domain_url: None,
+            locale: None,
+            token_expiration: SecretResolver::Value(3600),
+            noreply_name: None,
+            noreply_email: SecretResolver::Value(
+                "noreply@example.com".to_string(),
+            ),
+            support_name: None,
+            support_email: SecretResolver::Value(
+                "support@example.com".to_string(),
+            ),
+            token_secret: SecretResolver::Value("placeholder".to_string()),
+            hmac_primary_version: 1,
+            hmac_secrets: HmacSecretSet::new(vec![HmacSecretEntry {
+                version: 1,
+                secret: SecretResolver::Value("placeholder".to_string()),
+            }]),
+            staff_bootstrap_secret: None,
+        }
+    }
+
+    fn manager_account_on(tenant_id: Uuid) -> Account {
+        let mut account = Account::default();
+        account.account_type = AccountType::RoleAssociated {
+            tenant_id,
+            role_name: "subscriptions-manager".to_string(),
+            read_role_id: Uuid::new_v4(),
+            write_role_id: Uuid::new_v4(),
+        };
+        account
+    }
+
+    struct StubAccountFetching(Account);
+
+    #[async_trait]
+    impl AccountFetching for StubAccountFetching {
+        async fn get(
+            &self,
+            _: Uuid,
+            _: RelatedAccounts,
+        ) -> Result<FetchResponseKind<Account, Uuid>, MappedErrors> {
+            Ok(FetchResponseKind::Found(self.0.to_owned()))
+        }
+
+        async fn list(
+            &self,
+            _: RelatedAccounts,
+            _: Option<String>,
+            _: Option<bool>,
+            _: Option<bool>,
+            _: Option<bool>,
+            _: Option<bool>,
+            _: Option<bool>,
+            _: Option<Uuid>,
+            _: Option<String>,
+            _: Option<Uuid>,
+            _: AccountType,
+            _: Option<i32>,
+            _: Option<i32>,
+        ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
+            unimplemented!()
+        }
+
+        async fn get_by_telegram_id(
+            &self,
+            _: TelegramUserId,
+        ) -> Result<FetchResponseKind<Account, i64>, MappedErrors> {
+            unimplemented!()
+        }
+    }
+
+    struct UnreachableGuestUserRegistration;
+
+    #[async_trait]
+    impl GuestUserRegistration for UnreachableGuestUserRegistration {
+        async fn get_or_create(
+            &self,
+            _: GuestUser,
+            _: Uuid,
+        ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
+            unreachable!("guesting must stop before registration")
+        }
+    }
+
+    async fn guest_onto(
+        requested_tenant: Uuid,
+        account: Account,
+    ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
+        let mut profile = Profile::default();
+        profile.is_staff = true;
+
+        guest_user_to_subscription_manager_account(
+            profile,
+            Email::from_string("user-01@example.com".to_string()).unwrap(),
+            requested_tenant,
+            Permission::Read,
+            Uuid::new_v4(),
+            config(),
+            Box::new(&StubAccountFetching(account)),
+            Box::new(&UnreachableGuestUserRegistration),
+            Box::new(&MockLocalMessageWrite::new()),
+            Box::new(&MockTenantFetching::new()),
+        )
+        .await
+    }
+
+    #[tokio::test]
+    async fn refuses_a_manager_account_of_another_tenant() {
+        let account = manager_account_on(Uuid::new_v4());
+
+        let err = guest_onto(Uuid::new_v4(), account).await.unwrap_err();
+
+        assert!(err.has_str_code("MYC00018"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn accepts_the_tenant_of_the_manager_account() {
+        let tenant_id = Uuid::new_v4();
+
+        let err = guest_onto(tenant_id, manager_account_on(tenant_id))
+            .await
+            .unwrap_err();
+
+        assert!(!err.has_str_code("MYC00018"), "{err}");
+        assert!(err.to_string().contains("account status"), "{err}");
+    }
 }

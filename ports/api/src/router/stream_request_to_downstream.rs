@@ -1,3 +1,5 @@
+use super::send_to_downstream_with_retry::send_to_downstream_with_retry;
+
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -14,6 +16,7 @@ use chrono::Utc;
 use myc_core::domain::dtos::{
     callback::{CallbackContext, CallbackManager, UserInfo},
     http::HttpMethod,
+    route_retry_policy::RouteRetryPolicy,
 };
 use myc_http_tools::{
     responses::GatewayError, settings::DEFAULT_REQUEST_ID_KEY, SecurityGroup,
@@ -39,6 +42,7 @@ pub(super) async fn stream_request_to_downstream(
     upstream_request: &HttpRequest,
     payload: Option<Payload>,
     pre_buffered_body: Option<Bytes>,
+    retry: Option<&RouteRetryPolicy>,
     callback_names: Option<Vec<String>>,
     mem_module: &MemDbAppModule,
     user_info: Option<UserInfo>,
@@ -81,15 +85,14 @@ pub(super) async fn stream_request_to_downstream(
     // Get callbacks for filter checking
     let callbacks = db_provider.get_callbacks_db();
 
-    let send_result = if let Some(body) = pre_buffered_body {
-        downstream_request.send_body(body).await
-    } else {
-        downstream_request
-            .send_stream(
-                payload.expect("payload required when body not pre-buffered"),
-            )
-            .await
-    };
+    let send_result = send_to_downstream_with_retry(
+        downstream_request,
+        payload,
+        pre_buffered_body,
+        retry,
+        &downstream_method,
+    )
+    .await;
 
     let downstream_response: DownstreamResponse = match send_result {
         Err(err) => match err {

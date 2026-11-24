@@ -2,6 +2,96 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(notifications)* Add dispatch storage, quota and the recipient policy
+- *(notifications)* Send service emails through the gateway
+- *(diesel)* Implement instance settings updates and listing
+- *(diesel)* Add the federation trust tables
+- *(diesel)* Store federation peers
+- *(diesel)* Store seen federation request nonces
+- *(federation)* Identity link tables
+- *(federation)* Store identity links in Postgres
+- *(federation)* Store link requests and consents in Postgres
+- *(federation)* Assertion store and namespace claim tables
+- *(federation)* Store assertions in Postgres
+- *(federation)* Claim foreign ids in Postgres
+- *(federation)* Audit federated resolutions
+- *(federation)* Stale outcome and forgetting stored assertions
+- *(federation)* Tombstone and outbox tables
+- *(federation)* Revocation ports and their Postgres implementations
+- *(federation)* Grant translation table
+- *(federation)* Store grant translation rules
+- *(error-codes)* Public listing and native codes without registration
+
+### 🐛 Bug Fixes
+
+- *(deps)* Move diesel to 2.4 to take the patched bundled SQLite
+- *(federation)* Never let a handshake lift a quarantine
+- *(diesel)* Make the account soft delete persist
+
+## [9.0.1-beta.5] - 2026-10-22
+
+### 🚀 Features
+
+- *(auth)* Gateway-hosted email login with OAuth 2.0 code + PKCE
+- *(webhook)* Let system managers check webhook execution events
+
+### 🐛 Bug Fixes
+
+- Make the tenant list tag filter match tags
+- *(magic-link)* Cap failed code attempts to stop brute force
+- *(guest)* Accept only the caller's own pending invitation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
+
+## [9.0.1-beta.4] - 2026-10-14
+
+### 🐛 Bug Fixes
+
+- Bind tenant metadata and account type filters as SQL parameters
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.4
+
+## [9.0.1-beta.3] - 2026-09-22
+
+### 🚀 Features
+
+- *(webhook)* Claim events exclusively, back off exponentially, terminate
+
+### 🐛 Bug Fixes
+
+- *(webhook)* Stop a stored JSON null in propagations panicking the dispatcher
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
+
+## [9.0.1-beta.2] - 2026-09-21
+
+### 🐛 Bug Fixes
+
+- *(diesel_postgres)* Bind the connection-string signature instead of interpolating it
+- *(diesel_postgres)* Stop interpolating free-form strings into raw SQL
+- *(licensed_resources)* Drop the SQL log that printed the email in the clear
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.2
+
+## [9.0.1-beta.1] - 2026-08-28
+
+### ⚙️ Miscellaneous Tasks
+
+- Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
+
 ## [9.0.0] - 2026-08-12
 
 ### 🚀 Features
@@ -11,6 +101,10 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - *(postgres)* Grant the app role access to instance_settings and resource_audit_log
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0
 
 ## [9.0.0-rc.13] - 2026-07-29
 
@@ -38,15 +132,15 @@ All notable changes to this project will be documented in this file.
 
 ## [9.0.0-rc.9] - 2026-07-22
 
+### 🚀 Features
+
+- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
+
 ### ⚙️ Miscellaneous Tasks
 
 - Release version 9.0.0-rc.9
 
 ## [9.0.0-rc.7] - 2026-07-17
-
-### 🚀 Features
-
-- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
 
 ### ⚙️ Miscellaneous Tasks
 

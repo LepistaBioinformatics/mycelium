@@ -36,9 +36,13 @@ pub trait TokenInvalidation: Interface + Send + Sync {
 
     /// Phase 2 of magic link flow: consume the code, delete the record
     ///
-    /// Fetches the record by (email, code) where the display token has already
-    /// been consumed (token IS NULL). If found and not expired, deletes the
-    /// record and returns `Found(())`. If not found, returns `NotFound`.
+    /// Looks at the active records of the email whose display token has
+    /// already been consumed (token IS NULL). If one of them holds the code,
+    /// deletes it and returns `Found(())`. Otherwise counts a failed attempt
+    /// on every active record, deletes the ones that reached
+    /// `MAX_FAILED_MAGIC_LINK_ATTEMPTS`, and returns `NotFound`. The whole
+    /// check must run under a write lock so concurrent guesses cannot skip
+    /// the counter.
     async fn get_and_invalidate_magic_link_code(
         &self,
         email: &Email,

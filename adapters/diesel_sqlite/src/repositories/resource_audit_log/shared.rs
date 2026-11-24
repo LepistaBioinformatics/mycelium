@@ -31,6 +31,12 @@ pub(crate) fn resource_type_to_text(
         ResourceAuditResourceType::TenantMeta => "tenant_meta",
         ResourceAuditResourceType::GuestRole => "guest_role",
         ResourceAuditResourceType::Webhook => "webhook",
+        ResourceAuditResourceType::FederationResolution => {
+            "federation_resolution"
+        }
+        ResourceAuditResourceType::FederationTranslation => {
+            "federation_translation"
+        }
     }
 }
 
@@ -45,6 +51,12 @@ fn resource_type_from_text(
         "tenant_meta" => Ok(ResourceAuditResourceType::TenantMeta),
         "guest_role" => Ok(ResourceAuditResourceType::GuestRole),
         "webhook" => Ok(ResourceAuditResourceType::Webhook),
+        "federation_resolution" => {
+            Ok(ResourceAuditResourceType::FederationResolution)
+        }
+        "federation_translation" => {
+            Ok(ResourceAuditResourceType::FederationTranslation)
+        }
         other => Err(dto_err(format!(
             "Invalid resource_type in SQLite row: {other}"
         ))),

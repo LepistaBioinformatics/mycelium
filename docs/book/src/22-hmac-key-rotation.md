@@ -95,6 +95,13 @@ switch signing to it, let old tokens age out, then retire the old key.
 Reverse the procedure (un-bump primary, then remove the new entry) if
 you need to roll back before step 4.
 
+> **This also rotates the downstream profile signing keys.** The gateway
+> derives one Ed25519 profile signing key from each `hmacSecrets` entry and
+> signs with the one of `hmacPrimaryVersion`. Steps 2 and 3 are what make the
+> rotation transparent for downstream verifiers; never replace the secret of
+> an existing version in place. See
+> [Downstream Profile Signature](./27-downstream-profile-signature.md#key-rotation).
+
 ---
 
 ## Anti-downgrade

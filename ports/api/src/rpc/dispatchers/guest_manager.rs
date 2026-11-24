@@ -15,6 +15,7 @@ use super::super::{
     types::{self, JsonRpcError},
 };
 use crate::dtos::MyceliumProfileData;
+use crate::revoke_federated_access::FederatedAccessRevocation;
 
 use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
@@ -76,6 +77,11 @@ pub async fn dispatch_guest_manager(
             let p: DeleteGuestRoleParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
+            let revocation = FederatedAccessRevocation::of_guest_role(
+                app_module.get_ref(),
+                p.guest_role_id,
+            )
+            .await;
             let result = delete_guest_role(
                 profile.to_profile(),
                 p.guest_role_id,
@@ -84,6 +90,7 @@ pub async fn dispatch_guest_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             delete_response_kind_to_result(result)
         }
         method_names::GUEST_MANAGER_GUEST_ROLES_UPDATE_NAME_AND_DESCRIPTION => {
@@ -108,6 +115,11 @@ pub async fn dispatch_guest_manager(
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
             let permission = Permission::from_i32(p.permission);
+            let revocation = FederatedAccessRevocation::of_guest_role(
+                app_module.get_ref(),
+                p.guest_role_id,
+            )
+            .await;
             let result = update_guest_role_permission(
                 profile.to_profile(),
                 p.guest_role_id,
@@ -118,6 +130,7 @@ pub async fn dispatch_guest_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             updating_response_kind_to_result(result)
         }
         method_names::GUEST_MANAGER_GUEST_ROLES_INSERT_ROLE_CHILD => {

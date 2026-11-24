@@ -34,8 +34,10 @@ categories = ["development-tools", "web-programming::http-server"]
 
 [workspace.dependencies]
 
-actix-web = { version = "4", features = ["openssl"] }
+actix-web = { version = "4.20", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
+# Serves the webapp build under /_app (the `webapp` feature of mycelium-api).
+actix-files = "0.7"
 async-trait = "0.1"
 awc = { version = "3", features = ["openssl"] }
 base64 = "0.22"
@@ -58,16 +60,16 @@ jwt = "0.16.0"
 lazy_static = "1.4"
 # RUSTSEC-2026-0141: force lettre >= 0.11.22 (critical -- TLS hostname
 # verification disabled when using the Boring TLS backend).
-lettre = "0.11.22"
+lettre = "0.11.24"
 # Use native-tls to avoid rustls-webpki 0.101.x (RUSTSEC-2026-0098/0099).
 oauth2 = { version = "4.4", default-features = false, features = ["reqwest", "native-tls"] }
 openssl = ">=0.10.70"
-opentelemetry = { version = "0.31", features = ["trace", "metrics", "logs"] }
-opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.31", features = [
+opentelemetry = { version = "0.33", features = ["trace", "metrics", "logs"] }
+opentelemetry_sdk = { version = "0.33", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.33", features = [
     "reqwest-client",
     "http-proto",
-    "tls",
+    "tls-ring",
     "grpc-tonic",
     "trace",
     "metrics",
@@ -87,8 +89,10 @@ serde_json = "1.0"
 shaku = "0.6"
 slugify = "0.1.0"
 tokio = { version = "1.46", features = ["full"] }
-url = "2.2"
-utoipa = { version = "5", features = [
+# RUSTSEC-2026-0592: force url >= 2.5.9 (stack overflow in `Url::origin()`
+# on nested `blob:` URLs).
+url = "2.5.9"
+utoipa = { version = "6", features = [
     "actix_extras",
     "chrono",
     "debug",
@@ -98,7 +102,7 @@ utoipa = { version = "5", features = [
 ] }
 tracing = "0.1"
 tracing-appender = "0.2"
-tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_29"] }
+tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_33"] }
 tracing-subscriber = { version = "0.3.19", features = [
     "alloc",
     "json",
@@ -106,32 +110,33 @@ tracing-subscriber = { version = "0.3.19", features = [
     "tracing-serde",
     "registry",
 ] }
-tracing-opentelemetry = "0.32"
+tracing-opentelemetry = "0.34"
 toml = "0.9"
 uuid = { version = "1.1", features = ["v3", "v4", "v7", "serde", "fast-rng"] }
-utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
+utoipa-redoc = { version = "7", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "10.0.2", features = ["actix-web", "vendored"] }
 wildmatch = "2.1"
-zstd = "0.13"
+zstd = "0.13.4"
 
 # ------------------------------------------------------------------------------
 # Mycelium packages
 # ------------------------------------------------------------------------------
 
-myc-core = { version = "9.0.0", path = "core" }
-mycelium-base = { version = "9.0.0", path = "lib/base" }
-mycelium-config = { version = "9.0.0", path = "lib/config" }
-mycelium-openapi = { version = "9.0.0", path = "lib/openapi" }
-mycelium-http-tools = { version = "9.0.0", path = "lib/http_tools" }
-mycelium-memory-db = { version = "9.0.0", path = "adapters/mem_db" }
-mycelium-service = { version = "9.0.0", path = "adapters/service" }
-mycelium-diesel = { version = "9.0.0", path = "adapters/diesel_postgres" }
-mycelium-diesel-sqlite = { version = "9.0.0", path = "adapters/diesel_sqlite" }
-mycelium-notifier = { version = "9.0.0", path = "adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "9.0.0", path = "adapters/shared" }
-mycelium-key-value = { version = "9.0.0", path = "adapters/kv_db" }
-mycelium-moka-cache = { version = "9.0.0", path = "adapters/moka_cache" }
-mycelium-postgres-kv = { version = "9.0.0", path = "adapters/postgres_kv" }
+myc-core = { version = "9.1.0-rc.1", path = "core" }
+mycelium-base = { version = "9.1.0-rc.1", path = "lib/base" }
+mycelium-config = { version = "9.1.0-rc.1", path = "lib/config" }
+mycelium-openapi = { version = "9.1.0-rc.1", path = "lib/openapi" }
+mycelium-http-tools = { version = "9.1.0-rc.1", path = "lib/http_tools" }
+mycelium-memory-db = { version = "9.1.0-rc.1", path = "adapters/mem_db" }
+mycelium-service = { version = "9.1.0-rc.1", path = "adapters/service" }
+mycelium-federation-client = { version = "9.1.0-rc.1", path = "adapters/federation_client" }
+mycelium-diesel = { version = "9.1.0-rc.1", path = "adapters/diesel_postgres" }
+mycelium-diesel-sqlite = { version = "9.1.0-rc.1", path = "adapters/diesel_sqlite" }
+mycelium-notifier = { version = "9.1.0-rc.1", path = "adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "9.1.0-rc.1", path = "adapters/shared" }
+mycelium-key-value = { version = "9.1.0-rc.1", path = "adapters/kv_db" }
+mycelium-moka-cache = { version = "9.1.0-rc.1", path = "adapters/moka_cache" }
+mycelium-postgres-kv = { version = "9.1.0-rc.1", path = "adapters/postgres_kv" }
 
 
 #
@@ -148,10 +153,6 @@ bytes = "1.11.1"
 #
 time = "0.3.47"
 #
-# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/7
-#
-zip = "2.4.2"
-#
 # RUSTSEC-2026-0044 / RUSTSEC-2026-0048: force aws-lc-sys >= 0.39.0
 # (X.509 Name Constraints Bypass and CRL scope check logic error).
 # Transitive via aws-lc-rs → jsonwebtoken.
@@ -159,16 +160,49 @@ zip = "2.4.2"
 aws-lc-sys = "0.39.0"
 #
 # RUSTSEC-2026-0104: force rustls-webpki >= 0.103.13 (Reachable panic in
-# certificate revocation list parsing). Transitive via rustls → tokio-rustls
-# → tonic → opentelemetry-otlp.
+# certificate revocation list parsing). RUSTSEC-2026-0382: >= 0.103.16
+# (certificate verification may accept distrusted intermediates).
+# Transitive via rustls → tokio-rustls → tonic → opentelemetry-otlp.
 #
-rustls-webpki = "0.103.13"
+rustls-webpki = "0.103.16"
+#
+# RUSTSEC-2026-0285: force rustls >= 0.23.45 (TLS 1.3 handshake messages
+# accepted at the wrong encryption level -- a plaintext EncryptedExtensions
+# packed into the same record as the ServerHello was accepted, where RFC 8446
+# requires an unexpected_message alert). RUSTSEC-2026-0346 to -0349:
+# >= 0.23.46 (TLS secrets in `Debug` output, unauthenticated ServerHello
+# downgrade, buffered data sent after ECH rejection, 1 GiB certificate
+# decompression). Transitive via tokio-rustls → tonic → opentelemetry-otlp.
+#
+rustls = "0.23.46"
 #
 # RUSTSEC-2026-0204: force crossbeam-epoch >= 0.9.20 (invalid pointer
 # dereference in the `fmt::Pointer` impl for `Atomic`/`Shared`). Transitive
 # via tera → globwalk → ignore → crossbeam-deque.
 #
 crossbeam-epoch = "0.9.20"
+#
+# RUSTSEC-2026-0446, -0448, -0455, -0552, -0553, -0554: force actix-http
+# >= 3.21.3 (request smuggling through chunked trailers and chunk
+# extensions, keep-alive request header bypass, unbounded and large-window
+# Brotli decompression). Transitive via actix-web and awc. The direct
+# actix-web requirement is raised to 4.20 for RUSTSEC-2026-0447.
+#
+actix-http = "3.21.3"
+#
+# RUSTSEC-2026-0391, -0398, -0403, -0410: force zstd >= 0.13.4, zstd-safe
+# >= 7.4.0 and zstd-sys >= 2.1.2 (data leaking between reused streams,
+# uninitialized memory, `Vec` length past capacity, allocator shim memory
+# corruption). zstd is a direct dependency of http_tools (profile header
+# compression); actix-http also pulls zstd 0.14 / zstd-safe 8, both patched.
+#
+zstd-safe = "7.4.0"
+zstd-sys = "2.1.2"
+#
+# RUSTSEC-2026-0426, -0428: force orion >= 0.17.16 (timing-vulnerable
+# ML-KEM/ML-DSA code generation, wrong BLAKE2b tag after `reset()`).
+#
+orion = "0.17.16"
 
 [workspace.metadata.release]
 

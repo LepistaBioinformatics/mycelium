@@ -2,6 +2,145 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(api)* Inject the signed profile on forwarded requests
+- *(api)* Publish the profile signing JWKS
+- *(notifications)* Add the foundation for downstream email notifications
+- *(profile-signing)* Merge develop and derive the signing keys from hmacSecrets
+- *(notifications)* Issue notification-scoped connection strings
+- *(notifications)* Send service emails through the gateway
+- *(federation)* Add the federation cargo feature
+- *(federation)* Add the core.federation config section
+- *(federation)* Derive the federation signing keys at boot
+- *(federation)* Serve the instance self-description
+- *(federation)* Authenticate peer requests
+- *(federation)* Add the peer HTTP client
+- *(federation)* Accept peer handshakes
+- *(federation)* Run the peer health dispatcher
+- *(federation)* Quarantine peers and stop federation
+- *(rpc)* Add the federation staff scope
+- *(federation)* Publish the role catalog
+- *(federation)* Refresh a peer's keys on an unknown key id
+- *(federation)* Consumer linking pages
+- *(federation)* Send linking users through the hosted login
+- *(federation)* Confirm a link on the issuer
+- *(federation)* Complete a link on the issuer
+- *(federation)* Accept link confirmations
+- *(federation)* Revoke identity links
+- *(federation)* Purge expired link requests
+- *(federation)* Ask peers for grants
+- *(federation)* Answer peer resolutions
+- *(federation)* Resolve grants over RPC
+- *(federation)* Purge expired assertions
+- *(federation)* Refresh ahead and serve stale grants
+- *(federation)* Report denied and stale over RPC
+- *(federation)* The issuer answers unknown for a denied subject
+- *(federation)* Queue, push and apply tombstones
+- *(federation)* Push revocations when access is removed
+- *(federation)* Retry revocations and purge stored assertions at boot
+- *(federation)* Purge a quarantined peer's assertions
+- *(federation)* Push revocations when permissions or flags change
+- *(federation)* Attach federated grants to the profile
+- *(federation)* Apply translation rules per request
+- *(federation)* Manage translation rules over RPC
+- *(federation)* Answer and read guest-role vocabularies
+- *(federation)* Read a peer's guest roles over RPC
+- *(api)* Serve the webapp build under /_app (webapp feature)
+- *(error-codes)* Public listing and native codes without registration
+- *(notifications)* List notification issuance options for the caller
+
+### 🐛 Bug Fixes
+
+- *(mcp)* Stop logging forwarded credentials
+- *(deps)* Drop the unused zip 2.4.2 dependency
+- *(deps)* Upgrade opentelemetry to 0.33 and utoipa to 6
+- *(federation)* Never let a handshake lift a quarantine
+- *(federation)* Drop stored assertions before serving
+- *(discovery)* List downstream operations and allow hiding the gateway's own
+
+### 🚜 Refactor
+
+- *(http-tools)* Take the key-derivation label as a parameter
+- *(federation)* Take the settings port by reference in prepare_federation
+- *(federation)* Make the assertion envelope payload-agnostic
+
+### 📚 Documentation
+
+- *(federation)* Document identity linking
+
+### 🧪 Testing
+
+- *(api)* Serialize the TOML path in the config handler test
+
+## [9.0.1-beta.5] - 2026-10-22
+
+### 🚀 Features
+
+- *(auth)* Gateway-hosted email login with OAuth 2.0 code + PKCE
+- *(router)* Retry transient downstream failures per route
+- *(webhook)* Let system managers check webhook execution events
+
+### 🐛 Bug Fixes
+
+- Make the tenant list tag filter match tags
+- *(api)* Forbid framing of gateway-rendered pages
+- *(cache)* Shorten the default profile cache TTL to one minute
+- *(auth)* Block sign-in until the staff bootstrap is claimed
+
+### 🚜 Refactor
+
+- *(observability)* Identity logs to debug, one access line per request
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
+
+## [9.0.1-beta.4] - 2026-10-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.4
+
+## [9.0.1-beta.3] - 2026-09-22
+
+### 🚀 Features
+
+- *(webhook)* Claim events exclusively, back off exponentially, terminate
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
+
+## [9.0.1-beta.2] - 2026-09-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.2
+
+## [9.0.1-beta.1] - 2026-08-28
+
+### 🚀 Features
+
+- *(guest)* Allow granting a parentless guest role to whoever holds it
+
+### 🐛 Bug Fixes
+
+- *(beginners)* Accept internal tokens on REST account creation
+
+### ⚙️ Miscellaneous Tasks
+
+- Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
+
+## [9.0.0] - 2026-08-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0
+
 ## [9.0.0-rc.13] - 2026-07-29
 
 ### ⚙️ Miscellaneous Tasks
@@ -38,6 +177,14 @@ All notable changes to this project will be documented in this file.
 
 ## [9.0.0-rc.9] - 2026-07-22
 
+### 🚀 Features
+
+- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
+
+### 🚜 Refactor
+
+- *(features)* Rename `postgres-backend` feature to `full`
+
 ### ⚙️ Miscellaneous Tasks
 
 - Release version 9.0.0-rc.9
@@ -47,11 +194,6 @@ All notable changes to this project will be documented in this file.
 ### 🚀 Features
 
 - *(notifier)* Human-friendly stub email render + wire file transport (#169)
-- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
-
-### 🚜 Refactor
-
-- *(features)* Rename `postgres-backend` feature to `full`
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -140,13 +282,13 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
 - Release version 8.3.1-rc.4
 
 ## [8.3.1-rc.3] - 2026-04-27
 
 ### ⚙️ Miscellaneous Tasks
 
-- Merge develop — release automation, crates.io publish, GHCR Docker workflow
 - Release version 8.3.1-rc.3
 
 ## [8.3.1-rc.2] - 2026-04-26

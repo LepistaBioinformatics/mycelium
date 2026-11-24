@@ -20,6 +20,12 @@
 #   cargo build -p mycelium-api-test-svc --bin myc-api-test-svc
 
 set -euo pipefail
+umask 077
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+curl() { command curl --connect-timeout 2 --max-time 10 "$@"; }
+export MYC_E2E_TOKEN_SECRET="$(openssl rand -hex 32)"
+export MYC_E2E_HMAC_SECRET="$(openssl rand -hex 32)"
+export MYC_E2E_JWT_SECRET="$(openssl rand -hex 32)"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 API_BIN="${1:-$REPO_ROOT/target/debug/myc-api}"
@@ -41,7 +47,14 @@ fail() { printf 'FAIL: %s\n' "$1" >&2; exit 1; }
 cleanup() {
     [ -n "$API_PID" ] && kill "$API_PID" 2>/dev/null || true
     [ -n "$SVC_PID" ] && kill "$SVC_PID" 2>/dev/null || true
+    for _ in $(seq 1 20); do
+        { [ -z "$API_PID" ] || ! kill -0 "$API_PID" 2>/dev/null; } && { [ -z "$SVC_PID" ] || ! kill -0 "$SVC_PID" 2>/dev/null; } && break
+        sleep 0.1
+    done
+    [ -z "$API_PID" ] || kill -9 "$API_PID" 2>/dev/null || true
+    [ -z "$SVC_PID" ] || kill -9 "$SVC_PID" 2>/dev/null || true
     wait 2>/dev/null || true
+    rm -rf "$WORKDIR"
 }
 trap cleanup EXIT
 
@@ -85,12 +98,12 @@ noreplyEmail = "noreply@localhost"
 supportName = "Mycelium"
 supportEmail = "support@localhost"
 locale = "en-us"
-tokenSecret = "placeholder"
+tokenSecret = { env = "MYC_E2E_TOKEN_SECRET" }
 hmacPrimaryVersion = 1
 
 [[core.accountLifeCycle.hmacSecrets]]
 version = 1
-secret = "placeholder"
+secret = { env = "MYC_E2E_HMAC_SECRET" }
 
 [core.webhook]
 acceptInvalidCertificates = true
@@ -108,7 +121,7 @@ consumeIntervalInSecs = 1
 [auth.internal.define]
 jwtExpiresIn = 43200
 tmpExpiresIn = 300
-jwtSecret = "placeholder"
+jwtSecret = { env = "MYC_E2E_JWT_SECRET" }
 
 [api]
 serviceIp = "0.0.0.0"
@@ -168,23 +181,20 @@ curl -fsS -X POST "$BASE/magic-link/request" \
 # The logged body is the rendered (Tera-escaped) HTML email: `/` and `&` come
 # through as `&#x2F;` / `&amp;` inside the `href="..."` attribute, so extract
 # from the escaped form and decode before using the URL.
-RAW_LINK=""
+DISPLAY_URL=""
 for _ in $(seq 1 40); do
-    RAW_LINK="$(grep -oE 'href="[^"]*magic-link&#x2F;display\?[^"]+"' "$API_LOG" | tail -n1 || true)"
-    [ -n "$RAW_LINK" ] && break
+    DISPLAY_URL="$("$PYTHON_BIN" "$REPO_ROOT/test/profile-signature-consumers/extract_magic_link.py" "$API_LOG" --expected-origin "http://127.0.0.1:$API_PORT")"
+    [ -n "$DISPLAY_URL" ] && break
     sleep 0.5
 done
-[ -n "$RAW_LINK" ] || fail "no magic-link display URL found in stub transport log ($API_LOG)"
-
-DISPLAY_URL="$(printf '%s' "$RAW_LINK" \
-    | sed -E 's/^href="//; s/"$//; s/&#x2F;/\//g; s/&amp;/\&/g')"
+[ -n "$DISPLAY_URL" ] || fail "no magic-link display URL found in stub transport log"
 log "extracted display URL from stub transport log"
 
 DISPLAY_HTML="$(curl -fsS "$DISPLAY_URL")" \
     || fail "GET magic-link/display failed"
-CODE="$(printf '%s' "$DISPLAY_HTML" | grep -oE '<div class="code">[^<]+</div>' | sed -E 's/<[^>]+>//g' | tr -d '[:space:]')"
+CODE="$(printf '%s' "$DISPLAY_HTML" | "$PYTHON_BIN" "$REPO_ROOT/test/profile-signature-consumers/extract_magic_link.py" --code)"
 [ -n "$CODE" ] || fail "could not extract the 6-digit code from the display page"
-log "extracted login code: $CODE"
+log "extracted login code"
 
 VERIFY_RESPONSE="$(curl -fsS -X POST "$BASE/magic-link/verify" \
     -H 'Content-Type: application/json' \
@@ -192,7 +202,7 @@ VERIFY_RESPONSE="$(curl -fsS -X POST "$BASE/magic-link/verify" \
     || fail "magic-link/verify failed"
 
 JWT="$(printf '%s' "$VERIFY_RESPONSE" | grep -oE '"token":"[^"]+"' | cut -d'"' -f4)"
-[ -n "$JWT" ] || fail "no JWT in magic-link/verify response: $VERIFY_RESPONSE"
+[ -n "$JWT" ] || fail "no JWT in magic-link/verify response"
 log "JWT issued (${#JWT} chars) -- SM-R13's 'a JWT can be issued' verified"
 
 # -----------------------------------------------------------------------

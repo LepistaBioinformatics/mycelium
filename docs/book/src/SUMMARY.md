@@ -15,6 +15,7 @@
     - [Full Mode](./25-full-mode.md)
     - [Postgres-Only Mode](./26-postgres-only-mode.md)
     - [Standalone Mode](./23-standalone-mode.md)
+- [Serving the Webapp](./30-serving-the-webapp.md)
 
 # Core Concepts
 
@@ -22,6 +23,9 @@
 - [Authentication Flows](./11-authentication-flows.md)
 - [Account Types and Roles](./15-account-types.md)
 - [Downstream APIs](./06-downstream-apis.md)
+    - [Downstream Profile Signature](./27-downstream-profile-signature.md)
+- [Identity Linking Across Instances](./28-identity-linking.md)
+    - [Federated Grants](./29-federated-grants.md)
 
 # Advanced Topics
 

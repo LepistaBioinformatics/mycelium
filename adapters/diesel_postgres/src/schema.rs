@@ -47,6 +47,173 @@ diesel::table! {
 }
 
 diesel::table! {
+    federation_assertion_cache (link_id, kind) {
+        link_id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 64]
+        kind -> Varchar,
+        jws -> Text,
+        payload -> Jsonb,
+        iat -> Timestamptz,
+        exp -> Timestamptz,
+        received_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    federation_grant_translation (id) {
+        id -> Uuid,
+        peer_id -> Uuid,
+        issuer_tenant_id -> Uuid,
+        #[max_length = 140]
+        issuer_role -> Varchar,
+        issuer_perm -> Int4,
+        local_account_id -> Uuid,
+        local_guest_role_id -> Uuid,
+        local_perm -> Int4,
+        enabled -> Bool,
+        created -> Timestamptz,
+        created_by -> Nullable<Jsonb>,
+        updated -> Nullable<Timestamptz>,
+        updated_by -> Nullable<Jsonb>,
+    }
+}
+
+diesel::table! {
+    federation_identity_link (id) {
+        id -> Uuid,
+        local_user_id -> Uuid,
+        #[max_length = 140]
+        local_email -> Varchar,
+        peer_id -> Uuid,
+        #[max_length = 64]
+        peer_subject_ref -> Nullable<Varchar>,
+        #[max_length = 64]
+        local_subject_ref -> Varchar,
+        #[max_length = 16]
+        status -> Varchar,
+        created -> Timestamptz,
+        established_at -> Nullable<Timestamptz>,
+        revoked_at -> Nullable<Timestamptz>,
+        revoked_by -> Nullable<Jsonb>,
+    }
+}
+
+diesel::table! {
+    federation_link_consent (id) {
+        id -> Uuid,
+        peer_id -> Uuid,
+        peer_request_id -> Uuid,
+        #[max_length = 140]
+        peer_email -> Varchar,
+        #[max_length = 2048]
+        return_url -> Varchar,
+        local_user_id -> Nullable<Uuid>,
+        created -> Timestamptz,
+        expires_at -> Timestamptz,
+        consumed_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
+    federation_link_request (id) {
+        id -> Uuid,
+        local_user_id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 64]
+        secret_hash -> Varchar,
+        created -> Timestamptz,
+        expires_at -> Timestamptz,
+        redirected_at -> Nullable<Timestamptz>,
+        consumed_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
+    federation_namespace_claim (foreign_id) {
+        foreign_id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 16]
+        kind -> Varchar,
+        first_seen_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    federation_outbox (id) {
+        id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 64]
+        subject_ref -> Varchar,
+        #[max_length = 32]
+        reason -> Varchar,
+        issued_at -> Timestamptz,
+        attempts -> Int4,
+        next_attempt_at -> Timestamptz,
+        #[max_length = 16]
+        status -> Varchar,
+        last_error -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
+    federation_peer (id) {
+        id -> Uuid,
+        instance_id -> Uuid,
+        #[max_length = 2048]
+        base_url -> Varchar,
+        #[max_length = 255]
+        display_name -> Nullable<Varchar>,
+        #[max_length = 32]
+        status -> Varchar,
+        consume_kinds -> Jsonb,
+        serve_kinds -> Jsonb,
+        negotiated_kinds -> Jsonb,
+        policy -> Jsonb,
+        last_contact_at -> Nullable<Timestamptz>,
+        failure_count -> Int4,
+        created -> Timestamptz,
+        created_by -> Nullable<Jsonb>,
+        updated -> Nullable<Timestamptz>,
+        updated_by -> Nullable<Jsonb>,
+    }
+}
+
+diesel::table! {
+    federation_peer_key (peer_id, kid) {
+        peer_id -> Uuid,
+        #[max_length = 16]
+        kid -> Varchar,
+        #[max_length = 16]
+        alg -> Varchar,
+        #[max_length = 64]
+        public_key -> Varchar,
+        fetched_at -> Timestamptz,
+        expires_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
+    federation_request_nonce (jti) {
+        #[max_length = 128]
+        jti -> Varchar,
+        peer_id -> Uuid,
+        expires_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    federation_tombstone (link_id) {
+        link_id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 32]
+        reason -> Varchar,
+        issued_at -> Timestamptz,
+        received_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     guest_role (id) {
         id -> Uuid,
         #[max_length = 140]
@@ -210,6 +377,7 @@ diesel::table! {
         attempts -> Int4,
         created -> Timestamptz,
         attempted -> Nullable<Timestamptz>,
+        claimed_at -> Nullable<Timestamptz>,
         #[max_length = 100]
         status -> Nullable<Varchar>,
         propagations -> Nullable<Jsonb>,
@@ -272,8 +440,40 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    notification_dispatch (id) {
+        id -> Uuid,
+        sender_tag -> Varchar,
+        channel -> Varchar,
+        connection_string_id -> Int4,
+        account_id -> Uuid,
+        tenant_id -> Nullable<Uuid>,
+        recipient -> Varchar,
+        template -> Varchar,
+        locale -> Varchar,
+        created_at -> Timestamptz,
+    }
+}
+
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
+diesel::joinable!(federation_assertion_cache -> federation_identity_link (link_id));
+diesel::joinable!(federation_assertion_cache -> federation_peer (peer_id));
+diesel::joinable!(federation_grant_translation -> account (local_account_id));
+diesel::joinable!(federation_grant_translation -> federation_peer (peer_id));
+diesel::joinable!(federation_grant_translation -> guest_role (local_guest_role_id));
+diesel::joinable!(federation_identity_link -> federation_peer (peer_id));
+diesel::joinable!(federation_identity_link -> user (local_user_id));
+diesel::joinable!(federation_link_consent -> federation_peer (peer_id));
+diesel::joinable!(federation_link_consent -> user (local_user_id));
+diesel::joinable!(federation_link_request -> federation_peer (peer_id));
+diesel::joinable!(federation_link_request -> user (local_user_id));
+diesel::joinable!(federation_namespace_claim -> federation_peer (peer_id));
+diesel::joinable!(federation_outbox -> federation_peer (peer_id));
+diesel::joinable!(federation_peer_key -> federation_peer (peer_id));
+diesel::joinable!(federation_request_nonce -> federation_peer (peer_id));
+diesel::joinable!(federation_tombstone -> federation_identity_link (link_id));
+diesel::joinable!(federation_tombstone -> federation_peer (peer_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
 diesel::joinable!(guest_user_on_account -> account (account_id));
 diesel::joinable!(guest_user_on_account -> guest_user (guest_user_id));
@@ -290,6 +490,17 @@ diesel::allow_tables_to_appear_in_same_query!(
     account,
     account_tag,
     error_code,
+    federation_assertion_cache,
+    federation_grant_translation,
+    federation_identity_link,
+    federation_link_consent,
+    federation_link_request,
+    federation_namespace_claim,
+    federation_outbox,
+    federation_peer,
+    federation_peer_key,
+    federation_request_nonce,
+    federation_tombstone,
     guest_role,
     guest_role_children,
     guest_user,

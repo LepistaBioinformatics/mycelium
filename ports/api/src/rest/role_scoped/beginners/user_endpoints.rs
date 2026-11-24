@@ -1,9 +1,13 @@
 use crate::{
     middleware::{
         check_credentials_with_multi_identity_provider,
-        parse_issuer_from_request,
+        parse_issuer_from_request, sign_in_blocked_by_staff_bootstrap,
+        staff_bootstrap_pending_response,
     },
-    rest::shared::{build_actor_context, UrlGroup},
+    rest::{
+        hosted_page_response::hosted_page_response,
+        shared::{build_actor_context, UrlGroup},
+    },
     settings::ADMIN_API_SCOPE,
 };
 
@@ -66,6 +70,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? ---------------------------------------------------------------------------
 
 #[derive(Serialize, Deserialize, ToResponse, ToSchema)]
+#[response(description = "Email status")]
 #[serde(rename_all = "camelCase")]
 pub struct CheckEmailStatusResponse {
     email: String,
@@ -85,6 +90,7 @@ where
 }
 
 #[derive(Serialize, ToResponse, ToSchema)]
+#[response(description = "Login succeeded")]
 #[serde(rename_all = "camelCase")]
 pub struct MyceliumLoginResponse {
     pub token: String,
@@ -103,12 +109,14 @@ pub struct TotpActivationStartedParams {
 }
 
 #[derive(Serialize, ToResponse, ToSchema)]
+#[response(description = "TOTP activation started")]
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationStartedResponse {
     totp_url: Option<String>,
 }
 
 #[derive(Serialize, ToResponse, ToSchema)]
+#[response(description = "TOTP activation finished")]
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationFinishedResponse {
     finished: bool,
@@ -533,11 +541,16 @@ pub async fn check_token_and_reset_password_url(
 )]
 #[post("/login")]
 pub async fn check_email_password_validity_url(
+    req: HttpRequest,
     body: web::Json<CheckUserCredentialsBody>,
     app_module: web::Data<SqlAppModule>,
     auth_config: web::Data<InternalOauthConfig>,
     core_config: web::Data<AccountLifeCycle>,
 ) -> impl Responder {
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return staff_bootstrap_pending_response();
+    }
+
     let email_instance = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
@@ -967,10 +980,15 @@ pub async fn totp_disable_url(
 )]
 #[post("/magic-link/request")]
 pub async fn request_magic_link_url(
+    req: HttpRequest,
     body: web::Json<MagicLinkRequestBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return staff_bootstrap_pending_response();
+    }
+
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
@@ -1083,9 +1101,7 @@ pub async fn display_magic_link_url(
     context.insert("expires_in_minutes", &15u32);
 
     match TEMPLATES.render("web/magic-link-display.html", &context) {
-        Ok(html) => HttpResponse::Ok()
-            .content_type("text/html; charset=utf-8")
-            .body(html),
+        Ok(html) => hosted_page_response(actix_web::http::StatusCode::OK, html),
         Err(err) => {
             warn!("Failed to render magic-link-display template: {}", err);
             HttpResponse::InternalServerError().finish()
@@ -1098,9 +1114,10 @@ fn render_magic_link_error_page(domain_name: &str) -> HttpResponse {
     context.insert("domain_name", domain_name);
 
     match TEMPLATES.render("web/magic-link-display-error.html", &context) {
-        Ok(html) => HttpResponse::Unauthorized()
-            .content_type("text/html; charset=utf-8")
-            .body(html),
+        Ok(html) => hosted_page_response(
+            actix_web::http::StatusCode::UNAUTHORIZED,
+            html,
+        ),
         Err(err) => {
             warn!(
                 "Failed to render magic-link-display-error template: {}",
@@ -1141,11 +1158,16 @@ fn render_magic_link_error_page(domain_name: &str) -> HttpResponse {
 )]
 #[post("/magic-link/verify")]
 pub async fn verify_magic_link_url(
+    req: HttpRequest,
     body: web::Json<MagicLinkVerifyBody>,
     app_module: web::Data<SqlAppModule>,
     auth_config: web::Data<InternalOauthConfig>,
     core_config: web::Data<AccountLifeCycle>,
 ) -> impl Responder {
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return staff_bootstrap_pending_response();
+    }
+
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);

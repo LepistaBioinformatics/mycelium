@@ -170,7 +170,7 @@ mod tests {
         assert_eq!(updated.message, "Updated message");
 
         // List
-        let listed = fetching.list(None, None, None, None, None).await?;
+        let listed = fetching.list(None, None, None, None, None, None).await?;
         match listed {
             mycelium_base::entities::FetchManyResponseKind::FoundPaginated {
                 count,

@@ -1,18 +1,16 @@
-use super::fetch_profile_from_request_token;
+use super::{
+    fetch_profile_from_request_token, inject_signed_profile,
+    profile_signing_state_from,
+};
 use crate::middleware::fetch_profile_from_request_connection_string;
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::security_group::PermissionedRole;
 use myc_http_tools::{
-    functions::compress_and_encode_profile_to_base64,
-    responses::GatewayError,
-    settings::{DEFAULT_CONNECTION_STRING_KEY, DEFAULT_PROFILE_KEY},
-    Profile,
+    responses::GatewayError, settings::DEFAULT_CONNECTION_STRING_KEY, Profile,
 };
 use opentelemetry::{global, KeyValue};
-use reqwest::header::{HeaderName, HeaderValue};
-use std::str::FromStr;
 use tracing::Instrument;
 use uuid::Uuid;
 
@@ -40,17 +38,22 @@ use uuid::Uuid;
 )]
 pub async fn fetch_and_inject_profile_from_token_to_forward(
     req: HttpRequest,
-    mut forwarded_req: ClientRequest,
+    forwarded_req: ClientRequest,
     tenant: Option<Uuid>,
     roles: Option<Vec<PermissionedRole>>,
     service_name: String,
 ) -> Result<(ClientRequest, Profile), GatewayError> {
     let span = tracing::Span::current();
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.profile_injection",
         "Starting profile injection to downstream"
     );
+
+    //
+    // Read the signing state before `req` is moved into identity resolution
+    //
+    let signing = profile_signing_state_from(&req)?;
 
     let profile = if req.headers().get(DEFAULT_CONNECTION_STRING_KEY).is_some()
     {
@@ -72,8 +75,6 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
             .instrument(span.to_owned())
             .await?
     };
-
-    tracing::debug!("Profile: {:?}", profile);
 
     span.record("myc.router.profile_id", &Some(profile.acc_id.to_string()))
         .record("myc.router.is_staff", &Some(profile.is_staff))
@@ -115,23 +116,66 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
                     profile.acc_id.to_string().replace("-", "")
                 ),
             ),
-            KeyValue::new("down_service_name", service_name),
+            KeyValue::new("down_service_name", service_name.to_owned()),
         ],
     );
 
-    forwarded_req.headers_mut().insert(
-        HeaderName::from_str(DEFAULT_PROFILE_KEY).unwrap(),
-        HeaderValue::from_str(&compress_and_encode_profile_to_base64(
-            profile.to_profile(),
-        )?)
-        .unwrap(),
-    );
+    let forwarded_req = inject_signed_profile(
+        forwarded_req,
+        profile.to_profile(),
+        &service_name,
+        &signing,
+    )?;
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.profile_injection",
         outcome = "ok",
         "Profile injected into downstream request"
     );
 
     Ok((forwarded_req, profile.to_profile()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::connection_string_test_fixtures::*;
+
+    async fn forward_with(connection_string: &str) -> Option<GatewayError> {
+        let life_cycle = life_cycle();
+        let req =
+            request_with_connection_string(connection_string, &life_cycle);
+        let forwarded_req = awc::Client::default().get("http://localhost/");
+
+        fetch_and_inject_profile_from_token_to_forward(
+            req,
+            forwarded_req,
+            None,
+            None,
+            "service-01".to_string(),
+        )
+        .await
+        .err()
+    }
+
+    #[actix_web::test]
+    async fn routed_request_rejects_notification_string() {
+        let connection_string =
+            notification_connection_string(&life_cycle()).await;
+
+        assert!(matches!(
+            forward_with(&connection_string).await,
+            Some(GatewayError::Unauthorized(msg)) if msg.contains("MYC00033")
+        ));
+    }
+
+    #[actix_web::test]
+    async fn routed_request_takes_general_string_to_the_database_lookup() {
+        let connection_string = general_connection_string(&life_cycle()).await;
+
+        assert!(matches!(
+            forward_with(&connection_string).await,
+            Some(GatewayError::InternalServerError(_))
+        ));
+    }
 }

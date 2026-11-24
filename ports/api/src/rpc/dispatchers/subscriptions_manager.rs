@@ -23,6 +23,7 @@ use super::super::{
     types::{self, JsonRpcError},
 };
 use crate::dtos::MyceliumProfileData;
+use crate::revoke_federated_access::FederatedAccessRevocation;
 
 use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
@@ -335,6 +336,9 @@ pub async fn dispatch_subscriptions_manager(
                     .map_err(|e| invalid_params(e.to_string()))?;
             let permit_flags = p.permit_flags.unwrap_or_default();
             let deny_flags = p.deny_flags.unwrap_or_default();
+            let revocation =
+                FederatedAccessRevocation::of_account(app_module.get_ref(), p.account_id)
+                    .await;
             let result = update_flags_from_subscription_account(
                 profile.to_profile(),
                 p.tenant_id,
@@ -348,12 +352,15 @@ pub async fn dispatch_subscriptions_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             updating_response_kind_to_result(result)
         }
         method_names::SUBSCRIPTIONS_MANAGER_GUESTS_REVOKE_USER_GUEST_TO_SUBSCRIPTION_ACCOUNT => {
             let p: RevokeUserGuestToSubscriptionAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
+            let revocation =
+                FederatedAccessRevocation::of_email(p.email.clone());
             let result = revoke_user_guest_to_subscription_account(
                 profile.to_profile(),
                 p.tenant_id,
@@ -364,6 +371,7 @@ pub async fn dispatch_subscriptions_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             delete_response_kind_to_result(result)
         }
         method_names::SUBSCRIPTIONS_MANAGER_GUESTS_LIST_GUEST_ON_SUBSCRIPTION_ACCOUNT => {

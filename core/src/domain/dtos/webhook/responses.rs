@@ -8,7 +8,7 @@ use std::{fmt::Display, str::FromStr};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum WebHookExecutionStatus {
     /// The webhook execution is pending
@@ -16,6 +16,16 @@ pub enum WebHookExecutionStatus {
     /// This is the status of the webhook execution when it is pending.
     ///
     Pending,
+
+    /// The webhook execution was claimed by a dispatcher
+    ///
+    /// A pod holds this event and is dispatching it right now. Written by the
+    /// claim query, not by the dispatch itself, and cleared as soon as the
+    /// attempt resolves into one of the states below. A row still carrying it
+    /// past the configured visibility window belonged to a pod that died, and
+    /// is reclaimed.
+    ///
+    Processing,
 
     /// The webhook execution is successful
     ///
@@ -25,9 +35,19 @@ pub enum WebHookExecutionStatus {
 
     /// The webhook execution is failed
     ///
-    /// This is the status of the webhook execution when it is failed.
+    /// The attempt failed and another one is still owed -- `attempts` has not
+    /// reached `maxAttempts` yet. Compare with `Exhausted`, which is the same
+    /// failure after the last attempt.
     ///
     Failed,
+
+    /// The webhook execution failed for the last time
+    ///
+    /// Terminal. `attempts` reached `maxAttempts`, so the event is never
+    /// selected for dispatch again and nothing transitions out of this state.
+    /// The accumulated `propagations` are the record of why.
+    ///
+    Exhausted,
 
     /// The webhook execution is skipped
     ///
@@ -37,17 +57,28 @@ pub enum WebHookExecutionStatus {
 
     /// The webhook execution is unknown
     ///
-    /// This is the status of the webhook execution when it is unknown.
+    /// The stored status was absent, or was a string this build does not know
+    /// -- which is what an older pod sees for a status a newer one wrote
+    /// during a rolling deploy.
     ///
     Unknown,
+}
+
+impl WebHookExecutionStatus {
+    /// Whether no further attempt will ever be made
+    pub fn is_terminal(&self) -> bool {
+        matches!(self, Self::Success | Self::Exhausted | Self::Skipped)
+    }
 }
 
 impl Display for WebHookExecutionStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Pending => write!(f, "pending"),
+            Self::Processing => write!(f, "processing"),
             Self::Success => write!(f, "success"),
             Self::Failed => write!(f, "failed"),
+            Self::Exhausted => write!(f, "exhausted"),
             Self::Skipped => write!(f, "skipped"),
             Self::Unknown => write!(f, "unknown"),
         }
@@ -57,15 +88,25 @@ impl Display for WebHookExecutionStatus {
 impl FromStr for WebHookExecutionStatus {
     type Err = MappedErrors;
 
+    /// Never fails.
+    ///
+    /// Both fetching adapters `.unwrap()` this, so an `Err` here is a panic in
+    /// the dispatcher task. During a rolling deploy an old pod reads statuses
+    /// a new pod wrote, and rejecting them would take the old pod's dispatcher
+    /// down -- in exactly the multi-pod topology this queue is meant to
+    /// survive. Degrade to `Unknown` instead; an `Unknown` row is simply not
+    /// selected, which is recoverable, while a panic is not.
+    ///
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "pending" => Ok(Self::Pending),
-            "success" => Ok(Self::Success),
-            "failed" => Ok(Self::Failed),
-            "skipped" => Ok(Self::Skipped),
-            "unknown" => Ok(Self::Unknown),
-            _ => dto_err("Invalid webhook execution status").as_error(),
-        }
+        Ok(match s {
+            "pending" => Self::Pending,
+            "processing" => Self::Processing,
+            "success" => Self::Success,
+            "failed" => Self::Failed,
+            "exhausted" => Self::Exhausted,
+            "skipped" => Self::Skipped,
+            _ => Self::Unknown,
+        })
     }
 }
 
@@ -250,5 +291,55 @@ impl WebHookPayloadArtifact {
             payload,
             ..self.clone()
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn status_round_trips_through_display_and_from_str() {
+        for status in [
+            WebHookExecutionStatus::Pending,
+            WebHookExecutionStatus::Processing,
+            WebHookExecutionStatus::Success,
+            WebHookExecutionStatus::Failed,
+            WebHookExecutionStatus::Exhausted,
+            WebHookExecutionStatus::Skipped,
+            WebHookExecutionStatus::Unknown,
+        ] {
+            let text = status.to_string();
+
+            assert_eq!(
+                WebHookExecutionStatus::from_str(&text).unwrap(),
+                status,
+                "{text} did not round-trip"
+            );
+        }
+    }
+
+    #[test]
+    fn unrecognised_status_degrades_to_unknown_instead_of_erroring() {
+        // Both fetching adapters `.unwrap()` this call. An old pod reading a
+        // status a newer pod wrote must not take its dispatcher task down.
+        for text in ["", "quarantined", "PENDING", "a status from 2030"] {
+            assert_eq!(
+                WebHookExecutionStatus::from_str(text).unwrap(),
+                WebHookExecutionStatus::Unknown,
+                "{text} should have degraded to Unknown"
+            );
+        }
+    }
+
+    #[test]
+    fn exhausted_is_terminal_and_failed_is_not() {
+        assert!(WebHookExecutionStatus::Exhausted.is_terminal());
+        assert!(WebHookExecutionStatus::Success.is_terminal());
+        assert!(WebHookExecutionStatus::Skipped.is_terminal());
+
+        assert!(!WebHookExecutionStatus::Failed.is_terminal());
+        assert!(!WebHookExecutionStatus::Pending.is_terminal());
+        assert!(!WebHookExecutionStatus::Processing.is_terminal());
     }
 }

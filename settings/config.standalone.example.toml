@@ -87,6 +87,24 @@ secret = "replaced-at-boot-by-standalone-secret-resolution"
 # optional -- shown here at its built-in default value.
 # ------------------------------------------------------------------------------
 
+# ? ----------------------------------------------------------------------------
+# ? Downstream profile signature (no configuration)
+#
+# The gateway signs every `x-mycelium-profile` it injects and adds
+# `x-mycelium-profile-signature` (compact JWS, `alg: EdDSA`, `kid: <version>`,
+# claims `{iat, ph, aud}`). There is nothing to configure: one Ed25519 key is
+# derived (HKDF-SHA256) from each entry of `core.accountLifeCycle.hmacSecrets`
+# above, the entry's `version` is the `kid`, and `hmacPrimaryVersion` selects
+# the signing key. Both features therefore rotate together; always add a new
+# version, never replace the secret of an existing one. Use secrets of at
+# least 32 random bytes.
+#
+# The public halves are published at
+# GET /.well-known/mycelium-profile-jwks.json; downstream services point
+# MYCELIUM_JWKS_URL at it (and set MYC_PROFILE_SIGNATURE_AUDIENCE) to verify.
+# See the "Downstream profile signature" book chapter.
+# ? ----------------------------------------------------------------------------
+
 [core.webhook]
 
 # Whether to accept self-signed/invalid TLS certificates on webhook target
@@ -103,8 +121,82 @@ secret = "replaced-at-boot-by-standalone-secret-resolution"
 # consumeBatchSize = 25
 
 # How many delivery attempts before a webhook is given up on. Optional --
-# defaults to 5 if omitted.
+# defaults to 5 if omitted. On the last one the event becomes `exhausted`,
+# a terminal status it never leaves, and the abandonment is logged at error
+# level.
 # maxAttempts = 5
+
+# Whole-request timeout (seconds) on each outbound webhook call. Optional --
+# defaults to 30 if omitted. Without it a downstream that accepts the
+# connection and never answers holds the dispatcher open indefinitely.
+# requestTimeoutInSecs = 30
+
+# Connect-phase timeout (seconds). Optional -- defaults to 10 if omitted.
+# connectTimeoutInSecs = 10
+
+# Delay (seconds) before the first retry. Doubles with every further attempt
+# -- 30, 60, 120, 240, 480 at the defaults -- up to retryCapInSecs. Optional
+# -- defaults to 30 if omitted.
+# retryBaseInSecs = 30
+
+# Ceiling (seconds) on that exponential delay. Optional -- defaults to 3600
+# if omitted.
+# retryCapInSecs = 3600
+
+# How long (seconds) an event claimed by one replica stays invisible to the
+# others. This is crash recovery, not retry spacing: it only governs how long
+# an event left behind by a pod that died waits before another pod may take
+# it.
+#
+# INVARIANT: it must exceed the worst-case wall-clock of one whole claimed
+# batch, since the batch is claimed up front and dispatched sequentially.
+# `consumeBatchSize * requestTimeoutInSecs` (25 x 30 = 750s at the defaults)
+# is the floor of that bound -- each event also pays a webhook lookup, a KEK
+# derivation, a DEK fetch and a secret-decryption pass. RAISING the batch or
+# the request timeout REQUIRES raising this with it, or a live-but-slow
+# replica has its undispatched rows reclaimed and the webhook is delivered
+# twice.
+#
+# Optional -- defaults to 900 if omitted. Ignored in standalone mode, which
+# is a single process with nothing to race against.
+# visibilityTimeoutInSecs = 900
+
+# ------------------------------------------------------------------------------
+# DOWNSTREAM SERVICE NOTIFICATIONS
+#
+# Lets a downstream service send emails through the gateway with a
+# notification connection string (POST /_adm/notifications/email). Dormant
+# until a service declares a `[<service>.notifications]` block (example under
+# `[api.services]` below). This block is then optional except `templatesDir`,
+# which becomes required. Every key below shows its default.
+#
+# ROLLOUT: add the first `notifications` block only after EVERY gateway pod
+# runs a version that supports it. ROLLBACK: before going back to an older
+# version, delete every notification connection string first. See the
+# "Downstream APIs" book chapter (Sending emails from a service).
+# ------------------------------------------------------------------------------
+
+#[core.serviceNotifications]
+#
+## "header" keeps `From` equal to `noreplyEmail` and carries the service tag
+## in the X-Mycelium-Source-Service header: works with every provider. "plus"
+## sends from <local>+<senderTag>@<domain>; turn it on only after checking
+## that your provider accepts those senders (Google SMTP needs a send-as alias
+## or the SMTP relay; Azure Communication Services needs each sender
+## username registered on the verified domain).
+#senderTagMode = "header"
+#
+## Upper bound, in days, for the expiration of a notification string.
+#maxConnectionStringTtlInDays = 90
+#
+## Days the notification dispatch trace is kept; purged at most once an hour.
+#retentionDays = 90
+#
+## Root of the service templates: <templatesDir>/<senderTag>/<locale>/
+## <name>.jinja (body) and <name>.subject. Must not equal, contain or sit
+## inside TEMPLATES_DIR. Every declared template must exist for `en-us`; a
+## missing or malformed template fails the boot.
+#templatesDir = "service-templates"
 
 # ------------------------------------------------------------------------------
 # SQLITE DATABASE ADAPTER SETTINGS
@@ -201,6 +293,17 @@ path = "./data/mycelium.db"
 # note above), this value is never read. Still a required key.
 jwtSecret = "replaced-at-boot-by-standalone-secret-resolution"
 
+# Gateway-hosted email login (OAuth 2.0 authorization code + PKCE S256).
+# Optional -- disabled when omitted. Each client lists the exact redirect URIs
+# the gateway may send the browser back to (no prefix or wildcard matching).
+# The client's origin must also be in `api.allowedOrigins` for the
+# `POST /_adm/hosted-login/token` call.
+#
+# [auth.hostedLogin.define]
+# clients = [
+#   { clientId = "webapp", redirectUris = ["http://localhost:5173/callback"] },
+# ]
+
 # ------------------------------------------------------------------------------
 # API PORT SETTINGS
 #
@@ -245,7 +348,7 @@ allowedOrigins = ["http://localhost:8080"]
 # [api.cache]
 # jwksTtl = 43200    # 12 hours
 # emailTtl = 600     # 10 minutes
-# profileTtl = 600   # 10 minutes
+# profileTtl = 60    # 1 minute -- how long a changed profile can stay stale
 
 # ------------------------------------------------------------------------------
 # LOGGING SETTINGS
@@ -253,6 +356,24 @@ allowedOrigins = ["http://localhost:8080"]
 # The `[api.logging]` table itself is required (even empty), but all three
 # fields inside it are optional.
 # ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# WEBAPP (optional, requires the `webapp` cargo feature)
+#
+# Serves the mycelium-webapp build under /_app/, so the gateway alone serves
+# the UI (no nginx, no CORS). Build the webapp for that base path and with no
+# API URL, so it calls this origin:
+#
+#   VITE_BASE_PATH=/_app/ yarn build
+#
+# Absent = /_app/* goes to the downstream router as any other path. Set
+# without the feature, or with a distDir that has no index.html, the gateway
+# refuses to start. hostedLoginClientId is published by GET /app-config; the
+# client must list <domainUrl>/_app/callback among its redirectUris.
+# ------------------------------------------------------------------------------
+# [api.webapp]
+# distDir = "/home/webapp"
+# hostedLoginClientId = "webapp-01"
 
 [api.logging]
 
@@ -293,18 +414,34 @@ level = "warn,mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_
 
 [api.services]
 
-[[picoclaw]]
+[[service-01]]
 host = "127.0.0.1:8787"
 protocol = "http"
-healthCheckPath = "/v1/models"
+healthCheckPath = "/health"
 
-[[picoclaw.secret]]
-name = "picoclaw-authorization-header"
+[[service-01.secret]]
+name = "service-01-authorization-header"
 authorizationHeader = { name = "Authorization", prefix = "Bearer", token = "replace-me-by-in-env-token" }
 
-[[picoclaw.path]]
+[[service-01.path]]
 group = "public"
-path = "/v1/chat/completions"
-secretName = "picoclaw-authorization-header"
+path = "/public"
+secretName = "service-01-authorization-header"
 acceptInsecureRouting = true
 methods = ["ALL"]
+#
+## Email notifications sent by service-01 (deny by default: without this
+## block the service can neither get notification strings nor send). Needs
+## `[core.serviceNotifications].templatesDir`. `quotaPerHour` is shared by all
+## gateway pods; `maxRecipientsPerMessage` must not exceed it.
+#[service-01.notifications]
+#senderTag = "service-01"
+#displayName = "Service 01"
+#issuerRoles = ["service-01-admin"]
+#issuerTenants = []
+## owner | tenantMembers (needs a tenant-bound string) | domains | any
+#recipientPolicy = "owner"
+#allowedDomains = []
+#templates = ["welcome"]
+#quotaPerHour = 100
+#maxRecipientsPerMessage = 10

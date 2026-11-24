@@ -2,7 +2,7 @@
 name = "mycelium-http-tools"
 description = "Provide HTTP related elements to the mycelium project."
 
-version = "9.0.0"
+version = "9.1.0-rc.1"
 
 edition.workspace = true
 authors.workspace = true
@@ -38,6 +38,11 @@ hmac.workspace = true
 sha2.workspace = true
 secrecy.workspace = true
 subtle.workspace = true
+
+# Already a direct dependency of `myc-core` (same 0.17 line). Used only to
+# derive the Ed25519 public key published in the profile JWKS from the
+# configured PKCS#8 private key: `jsonwebtoken` does not expose it.
+ring = "0.17"
 
 # ------------------------------------------------------------------------------
 # Mycelium packages

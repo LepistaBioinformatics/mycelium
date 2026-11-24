@@ -2,6 +2,148 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(core)* Add profile signature types and signing configuration
+- *(core)* Add the profile JWKS cache lifetime setting
+- *(notifications)* Add the foundation for downstream email notifications
+- *(profile-signing)* Merge develop and derive the signing keys from hmacSecrets
+- *(notifications)* Issue notification-scoped connection strings
+- *(notifications)* Add the delivery plumbing for service emails
+- *(notifications)* Add dispatch storage, quota and the recipient policy
+- *(notifications)* Send service emails through the gateway
+- *(core)* Add the instance settings updating port
+- *(federation)* Mint a stable instance id
+- *(federation)* Add the core.federation config section
+- *(federation)* Describe the instance
+- *(federation)* Serve the instance self-description
+- *(federation)* Toggle federation at runtime behind the config guard
+- *(federation)* Add peer and policy types
+- *(federation)* Add peer and request-nonce ports
+- *(federation)* Authenticate peer requests
+- *(federation)* Add the peer HTTP client
+- *(federation)* Handshake with a declared peer
+- *(federation)* Add the per-peer circuit breaker
+- *(federation)* Run the peer health dispatcher
+- *(federation)* Quarantine peers and stop federation
+- *(rpc)* Add the federation staff scope
+- *(federation)* Publish the role catalog
+- *(federation)* Refresh a peer's keys on an unknown key id
+- *(federation)* Identity link DTOs
+- *(federation)* Identity link ports
+- *(federation)* Start an identity link
+- *(federation)* Consumer linking pages
+- *(federation)* Send linking users through the hosted login
+- *(federation)* Confirm a link on the issuer
+- *(federation)* Complete a link on the issuer
+- *(federation)* Accept link confirmations
+- *(federation)* Revoke identity links
+- *(federation)* Assertion and resolution DTOs
+- *(federation)* Resolution ports
+- *(federation)* Answer peer resolutions
+- *(federation)* Guard foreign ids
+- *(federation)* Audit federated resolutions
+- *(federation)* Resolve federated grants
+- *(federation)* Resolve grants over RPC
+- *(federation)* Assertion refresh age setting
+- *(federation)* Stale outcome and forgetting stored assertions
+- *(federation)* Refresh ahead and serve stale grants
+- *(federation)* A local denial wins over federated grants
+- *(federation)* Tombstone and subject standing DTOs
+- *(federation)* Revocation ports and their Postgres implementations
+- *(federation)* The issuer answers unknown for a denied subject
+- *(federation)* Queue, push and apply tombstones
+- *(federation)* Purge a quarantined peer's assertions
+- *(profile)* Carry federated grants apart from local ones
+- *(federation)* Read a subject's federated grants from the store
+- *(federation)* Grant translation table
+- *(federation)* Grant translation DTOs
+- *(federation)* Store grant translation rules
+- *(federation)* Translate federated grants into local ones
+- *(federation)* Apply translation rules per request
+- *(federation)* The guest-role vocabulary assertion kind
+- *(federation)* Answer and read guest-role vocabularies
+- *(error-codes)* Public listing and native codes without registration
+- *(notifications)* List notification issuance options for the caller
+
+### 🐛 Bug Fixes
+
+- *(notifications)* Give staff and manager no bypass of issuerRoles
+- *(notifications)* Require a verified licence to be a notification issuer
+- *(notifications)* Keep template variable values out of render errors
+- *(notifications)* Match Tera's missing-variable message exactly
+- *(federation)* Never let a handshake lift a quarantine
+- *(core)* Drop recursive port Display impls and compare the guest tenant
+
+### ⚙️ Miscellaneous Tasks
+
+- *(examples)* Use generic service names instead of picoclaw
+
+## [9.0.1-beta.5] - 2026-10-22
+
+### 🚀 Features
+
+- *(auth)* Gateway-hosted email login with OAuth 2.0 code + PKCE
+- *(router)* Retry transient downstream failures per route
+- *(webhook)* Let system managers check webhook execution events
+
+### 🐛 Bug Fixes
+
+- Make the tenant list tag filter match tags
+- *(magic-link)* Cap failed code attempts to stop brute force
+- *(auth)* Count hosted login email case variants as one address
+- *(guest)* Accept only the caller's own pending invitation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
+
+## [9.0.1-beta.4] - 2026-10-14
+
+### 🐛 Bug Fixes
+
+- Prevent compact URL parser panics
+- Avoid logging compact profile URLs
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.4
+
+## [9.0.1-beta.3] - 2026-09-22
+
+### 🚀 Features
+
+- *(webhook)* Claim events exclusively, back off exponentially, terminate
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
+
+## [9.0.1-beta.2] - 2026-09-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.2
+
+## [9.0.1-beta.1] - 2026-08-28
+
+### 🚀 Features
+
+- *(guest)* Allow granting a parentless guest role to whoever holds it
+
+### ⚙️ Miscellaneous Tasks
+
+- Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
+
+## [9.0.0] - 2026-08-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0
+
 ## [9.0.0-rc.13] - 2026-07-29
 
 ### ⚙️ Miscellaneous Tasks
@@ -110,13 +252,13 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
 - Release version 8.3.1-rc.4
 
 ## [8.3.1-rc.3] - 2026-04-27
 
 ### ⚙️ Miscellaneous Tasks
 
-- Merge develop — release automation, crates.io publish, GHCR Docker workflow
 - Release version 8.3.1-rc.3
 
 ## [8.3.1-rc.2] - 2026-04-26

@@ -9,11 +9,11 @@ use super::super::{
         CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
         CreateAccountMetaParams, CreateConnectionStringParams,
         CreateDefaultAccountParams, CreateDefaultUserParams,
-        DeleteAccountMetaParams, DeleteConnectionStringParams,
-        DeleteMyAccountParams, FetchMyProfileParams,
-        FetchTenantPublicInfoParams, RevokeConnectionStringParams,
-        StartPasswordRedefinitionParams, TotpCheckTokenParams,
-        TotpDisableParams, TotpFinishActivationParams,
+        CreateNotificationConnectionStringParams, DeleteAccountMetaParams,
+        DeleteConnectionStringParams, DeleteMyAccountParams,
+        FetchMyProfileParams, FetchTenantPublicInfoParams,
+        RevokeConnectionStringParams, StartPasswordRedefinitionParams,
+        TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
         TotpStartActivationParams, UpdateAccountMetaParams,
         UpdateOwnAccountNameParams,
     },
@@ -24,11 +24,12 @@ use super::super::{
     },
     types::{self, JsonRpcError},
 };
+use crate::revoke_federated_access::FederatedAccessRevocation;
 use crate::{
     dtos::MyceliumProfileData,
     middleware::{
         check_credentials_with_multi_identity_provider,
-        parse_issuer_from_request,
+        parse_issuer_from_request, resolve_issuer_from_provider,
     },
 };
 
@@ -42,7 +43,7 @@ use myc_core::{
         profile::{LicensedResources, TenantsOwnership},
         security_group::PermissionedRole,
     },
-    models::AccountLifeCycle,
+    models::{AccountLifeCycle, ServiceNotificationsConfig},
     use_cases::role_scoped::beginner::{
         account::{
             create_user_account, delete_my_account, get_my_account_details,
@@ -52,8 +53,9 @@ use myc_core::{
         meta::{create_account_meta, delete_account_meta, update_account_meta},
         tenant::fetch_tenant_public_info,
         token::{
-            create_connection_string, delete_connection_string,
-            list_my_connection_strings, revoke_connection_string,
+            create_connection_string, create_notification_connection_string,
+            delete_connection_string, list_my_connection_strings,
+            list_notification_issuance_options, revoke_connection_string,
         },
         user::{
             check_email_password_validity, check_token_and_activate_user,
@@ -64,7 +66,7 @@ use myc_core::{
     },
 };
 use myc_http_tools::responses::GatewayError;
-use myc_http_tools::settings::MYCELIUM_PROVIDER_KEY;
+use myc_mem_db::repositories::MemDbAppModule;
 use shaku::HasComponent;
 use std::str::FromStr;
 use tracing::warn;
@@ -77,6 +79,14 @@ pub async fn dispatch_beginners(
     method: &str,
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
+    #[cfg(feature = "federation")]
+    if method.starts_with("beginners.federation.") {
+        return super::beginners_federation::dispatch_beginners_federation(
+            profile, app_module, req, method, params,
+        )
+        .await;
+    }
+
     match method {
         method_names::BEGINNERS_ACCOUNTS_CREATE => {
             let req =
@@ -95,21 +105,16 @@ pub async fn dispatch_beginners(
                             data: None,
                         }
                     })?;
-            let issuer = if let Some(provider) = external_provider {
-                match provider.issuer.async_get_or_error().await {
-                    Ok(issuer) => issuer,
-                    Err(err) => {
-                        warn!("issuer err: {:?}", err);
-                        return Err(JsonRpcError {
-                            code: types::codes::INTERNAL_ERROR,
-                            message: err.to_string(),
-                            data: None,
-                        });
+            let issuer = resolve_issuer_from_provider(external_provider)
+                .await
+                .map_err(|err| {
+                    warn!("issuer err: {:?}", err);
+                    JsonRpcError {
+                        code: types::codes::INTERNAL_ERROR,
+                        message: err.to_string(),
+                        data: None,
                     }
-                }
-            } else {
-                MYCELIUM_PROVIDER_KEY.to_string()
-            };
+                })?;
             let p: CreateDefaultAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -176,6 +181,11 @@ pub async fn dispatch_beginners(
                 );
                 return Err(forbidden_owner_only());
             }
+            let revocation = FederatedAccessRevocation::of_account(
+                app_module.get_ref(),
+                profile.acc_id,
+            )
+            .await;
             let result = delete_my_account(
                 profile.to_profile(),
                 Box::new(&*app_module.resolve_ref()),
@@ -184,6 +194,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             delete_response_kind_to_result(result)
         }
         method_names::BEGINNERS_GUESTS_ACCEPT_INVITATION => {
@@ -351,6 +362,66 @@ pub async fn dispatch_beginners(
                 serde_json::json!({ "connectionString": result }),
             )
             .map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        method_names::BEGINNERS_TOKENS_CREATE_NOTIFICATION => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let notifications_settings = req
+                .and_then(|r| {
+                    r.app_data::<web::Data<ServiceNotificationsConfig>>()
+                })
+                .ok_or_else(|| {
+                    invalid_params("Service notifications config required")
+                })?
+                .get_ref();
+            let mem_module = req
+                .and_then(|r| r.app_data::<web::Data<MemDbAppModule>>())
+                .ok_or_else(|| invalid_params("Services registry required"))?;
+            let p: CreateNotificationConnectionStringParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let result = create_notification_connection_string(
+                profile.to_profile(),
+                p.name,
+                p.expiration,
+                p.tenant_id,
+                p.sender_tag,
+                notifications_settings.to_owned(),
+                life_cycle.to_owned(),
+                Box::new(&*mem_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            Ok(serde_json::json!({ "connectionString": result }))
+        }
+        method_names::BEGINNERS_TOKENS_LIST_NOTIFICATION_SERVICES => {
+            let notifications_settings = req
+                .and_then(|r| {
+                    r.app_data::<web::Data<ServiceNotificationsConfig>>()
+                })
+                .ok_or_else(|| {
+                    invalid_params("Service notifications config required")
+                })?
+                .get_ref();
+            let mem_module = req
+                .and_then(|r| r.app_data::<web::Data<MemDbAppModule>>())
+                .ok_or_else(|| invalid_params("Services registry required"))?;
+            let result = list_notification_issuance_options(
+                profile.to_profile(),
+                notifications_settings.to_owned(),
+                Box::new(&*mem_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(result).map_err(|e| JsonRpcError {
                 code: types::codes::INTERNAL_ERROR,
                 message: e.to_string(),
                 data: None,

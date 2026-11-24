@@ -76,6 +76,8 @@ initiatives — aspects that are **independent of internal technical decisions**
 * Identity context injection via Profile
 * Composable authorization primitives
 * Architecture compatible with market standards
+* Optionally serves its own web interface under `/_app/`, so a single process
+  runs the whole stack ([Serving the Webapp](./docs/book/src/30-serving-the-webapp.md))
 
 ---
 
@@ -220,6 +222,7 @@ Alternatively, you can access documentation files directly in the `docs/book/src
 - **[Deploy Locally](./docs/book/src/05-deploy-locally.md)** - Local deployment with Docker
 - **[Authorization Model](./docs/book/src/01-authorization.md)** - Security and authorization
 - **[Downstream APIs](./docs/book/src/06-downstream-apis.md)** - Configure routes and services
+- **[Serving the Webapp](./docs/book/src/30-serving-the-webapp.md)** - Serve the web interface from the gateway
 - **[Running Tests](./docs/book/src/07-running-tests.md)** - Testing guide
 
 ---

@@ -2,7 +2,7 @@
 name = "mycelium-config"
 description = "Provide config manager features of the Mycelium project as and use-cases."
 
-version = "9.0.0"
+version = "9.1.0-rc.1"
 
 edition.workspace = true
 authors.workspace = true

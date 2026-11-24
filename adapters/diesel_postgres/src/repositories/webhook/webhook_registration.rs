@@ -121,6 +121,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             },
             attempts: 0,
             attempted: None,
+            claimed_at: None,
             propagations: None,
             encrypted: None,
         };

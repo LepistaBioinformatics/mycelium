@@ -1,6 +1,10 @@
 pub(crate) mod account_manager;
 pub(crate) mod audit;
 pub(crate) mod beginners;
+#[cfg(feature = "federation")]
+pub(crate) mod federation;
+#[cfg(feature = "federation")]
+pub(crate) mod federation_translation;
 pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
 pub(crate) mod managers;
@@ -22,12 +26,22 @@ pub(crate) use beginners::{
     CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
     CreateAccountMetaParams, CreateConnectionStringParams,
     CreateDefaultAccountParams, CreateDefaultUserParams,
-    DeleteAccountMetaParams, DeleteConnectionStringParams,
-    DeleteMyAccountParams, FetchMyProfileParams, FetchTenantPublicInfoParams,
-    RevokeConnectionStringParams, StartPasswordRedefinitionParams,
-    TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
-    TotpStartActivationParams, UpdateAccountMetaParams,
-    UpdateOwnAccountNameParams,
+    CreateNotificationConnectionStringParams, DeleteAccountMetaParams,
+    DeleteConnectionStringParams, DeleteMyAccountParams, FetchMyProfileParams,
+    FetchTenantPublicInfoParams, RevokeConnectionStringParams,
+    StartPasswordRedefinitionParams, TotpCheckTokenParams, TotpDisableParams,
+    TotpFinishActivationParams, TotpStartActivationParams,
+    UpdateAccountMetaParams, UpdateOwnAccountNameParams,
+};
+#[cfg(feature = "federation")]
+pub(crate) use federation::{
+    FederationPeerParams, LinkParams, SetFederationEnabledParams,
+    StartLinkParams,
+};
+#[cfg(feature = "federation")]
+pub(crate) use federation_translation::{
+    CreateTranslationRuleParams, ListTranslationRulesParams,
+    SetTranslationRuleEnabledParams, TranslationRuleParams,
 };
 pub(crate) use gateway_manager::{
     ListOperationsParams, ListRoutesParams, ListServicesParams,
@@ -59,8 +73,9 @@ pub(crate) use subscriptions_manager::{
 };
 pub(crate) use system_manager::{
     DeleteErrorCodeParams, DeleteWebhookParams, GetErrorCodeParams,
-    ListErrorCodesParams, ListWebhooksParams, RegisterErrorCodeParams,
-    RegisterWebhookParams, UpdateErrorCodeMessageAndDetailsParams,
+    ListErrorCodesParams, ListWebhookExecutionsParams, ListWebhooksParams,
+    RegisterErrorCodeParams, RegisterWebhookParams,
+    SummarizeWebhookExecutionsParams, UpdateErrorCodeMessageAndDetailsParams,
     UpdateWebhookParams,
 };
 pub(crate) use tenant_manager::{

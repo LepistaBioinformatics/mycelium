@@ -9,6 +9,7 @@ pub(crate) mod identity_provider;
 pub(crate) mod instance_settings;
 pub(crate) mod licensed_resource;
 pub(crate) mod message;
+pub(crate) mod notification_dispatch;
 pub(crate) mod owner_on_tenant;
 pub(crate) mod public_connection_string_info;
 pub(crate) mod resource_audit_log;

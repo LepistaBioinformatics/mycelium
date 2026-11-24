@@ -13,7 +13,7 @@ pub fn methods() -> Vec<serde_json::Value> {
         serde_json::json!({
             "name": method_names::ACCOUNT_MANAGER_GUESTS_GUEST_TO_CHILDREN_ACCOUNT,
             "summary": "Guest user to children account",
-            "description": "Adds a guest user to an account under the given guest role (child role). Requires account manager privileges on the tenant. Tenant ID, account ID and role ID must be provided.",
+            "description": "Adds a guest user to an account under the given guest role. The requester must hold the role's parent role, or the role itself when it has no parent. Requires account manager privileges on the tenant. Tenant ID, account ID and role ID must be provided.",
             "tags": [{ "name": "accountManager" }, { "name": "guests" }],
             "params": [{ "name": "params", "required": true, "schema": guest_to_children_account_schema }],
             "result": { "name": "result", "description": "Created or existing guest user (GetOrCreateResponseKind)", "schema": { "type": "object" } },

@@ -1,4 +1,6 @@
-use crate::models::api_config::ApiConfig;
+use crate::models::{
+    api_config::ApiConfig, requester_identity::RequesterIdentity,
+};
 
 use crate::models::active_backend_modules::KVAppModule;
 use crate::models::active_backend_modules::SqlAppModule;
@@ -29,7 +31,7 @@ pub(crate) async fn recovery_profile_from_storage_engines(
     tenant: Option<Uuid>,
     roles: Option<Vec<PermissionedRole>>,
 ) -> Result<Profile, GatewayError> {
-    tracing::info!(stage = "identity.profile", "Resolving user profile");
+    tracing::debug!(stage = "identity.profile", "Resolving user profile");
 
     // ? -----------------------------------------------------------------------
     // ? Try to fetch profile from cache
@@ -41,12 +43,13 @@ pub(crate) async fn recovery_profile_from_storage_engines(
     if let Some(profile) =
         fetch_profile_from_cache(search_key.to_owned(), req.clone()).await
     {
-        tracing::info!(
+        tracing::debug!(
             stage = "identity.profile",
             outcome = "from_cache",
             "Profile obtained from cache"
         );
-        return Ok(profile);
+        RequesterIdentity::record_account(&req, profile.acc_id);
+        return Ok(with_federated_grants(profile, &req, &email).await);
     }
 
     // ? -----------------------------------------------------------------------
@@ -72,11 +75,13 @@ pub(crate) async fn recovery_profile_from_storage_engines(
 
     cache_profile(search_key, profile.clone(), req.clone()).await;
 
-    tracing::info!(
+    tracing::debug!(
         stage = "identity.profile",
         outcome = "resolved",
         "Profile resolved via datastore"
     );
+
+    RequesterIdentity::record_account(&req, profile.acc_id);
 
     // ? -----------------------------------------------------------------------
     // ? Return profile
@@ -84,7 +89,25 @@ pub(crate) async fn recovery_profile_from_storage_engines(
 
     tracing::trace!("Profile: {:?}", profile.profile_redacted());
 
-    Ok(profile)
+    Ok(with_federated_grants(profile, &req, &email).await)
+}
+
+/// The grants peers asserted for the subject, attached after the cache so
+/// they are never cached with the local profile (FED-26)
+async fn with_federated_grants(
+    profile: Profile,
+    req: &HttpRequest,
+    email: &Email,
+) -> Profile {
+    #[cfg(feature = "federation")]
+    return crate::federation::attach_federated_grants(profile, req, email)
+        .await;
+
+    #[cfg(not(feature = "federation"))]
+    {
+        let _ = (req, email);
+        profile
+    }
 }
 
 /// Generate a hash of the profile request
@@ -176,7 +199,7 @@ async fn fetch_profile_from_cache(
 
     let profile_base64 = match profile_response {
         FetchResponseKind::NotFound(_) => {
-            tracing::info!(
+            tracing::debug!(
                 stage = "identity.profile.cache",
                 cache_hit = false,
                 "Profile cache: miss"
@@ -199,7 +222,7 @@ async fn fetch_profile_from_cache(
 
     match serde_json::from_slice::<Profile>(&profile_slice) {
         Ok(profile) => {
-            tracing::info!(
+            tracing::debug!(
                 stage = "identity.profile.cache",
                 cache_hit = true,
                 "Profile cache: hit"

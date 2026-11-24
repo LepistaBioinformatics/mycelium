@@ -6,6 +6,7 @@ use super::super::{
     types::{self, JsonRpcError},
 };
 use crate::dtos::MyceliumProfileData;
+use crate::revoke_federated_access::FederatedAccessRevocation;
 
 use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
@@ -42,6 +43,11 @@ pub async fn dispatch_users_manager(
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
+            let revocation = FederatedAccessRevocation::of_account(
+                app_module.get_ref(),
+                p.account_id,
+            )
+            .await;
             let result = change_account_approval_status(
                 profile.to_profile(),
                 p.account_id,
@@ -52,6 +58,7 @@ pub async fn dispatch_users_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             updating_response_kind_to_result(result)
         }
         method_names::USER_MANAGER_ACCOUNT_ACTIVATE => {
@@ -74,6 +81,11 @@ pub async fn dispatch_users_manager(
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
+            let revocation = FederatedAccessRevocation::of_account(
+                app_module.get_ref(),
+                p.account_id,
+            )
+            .await;
             let result = change_account_activation_status(
                 profile.to_profile(),
                 p.account_id,
@@ -84,12 +96,18 @@ pub async fn dispatch_users_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             updating_response_kind_to_result(result)
         }
         method_names::USER_MANAGER_ACCOUNT_ARCHIVE => {
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
+            let revocation = FederatedAccessRevocation::of_account(
+                app_module.get_ref(),
+                p.account_id,
+            )
+            .await;
             let result = change_account_archival_status(
                 profile.to_profile(),
                 p.account_id,
@@ -100,6 +118,7 @@ pub async fn dispatch_users_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             updating_response_kind_to_result(result)
         }
         method_names::USER_MANAGER_ACCOUNT_UNARCHIVE => {

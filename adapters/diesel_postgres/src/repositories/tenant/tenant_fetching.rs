@@ -20,13 +20,19 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::{dsl::sql, prelude::*, BelongingToDsl, QueryDsl};
+use diesel::{
+    dsl::{sql, AsExprOf},
+    expression::{SqlLiteral, UncheckedBind},
+    prelude::*,
+    sql_types::{Bool, Text},
+    BelongingToDsl, QueryDsl,
+};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
         profile::Owner,
         tag::Tag,
-        tenant::{Tenant, TenantMetaKey},
+        tenant::{Tenant, TenantMetaKey, TenantTagFilter},
     },
     entities::TenantFetching,
 };
@@ -35,7 +41,7 @@ use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
-use serde_json::{json, to_value};
+use serde_json::json;
 use shaku::Component;
 use std::{collections::HashMap, str::FromStr, sync::Arc};
 use uuid::Uuid;
@@ -341,7 +347,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         name: Option<String>,
         owner: Option<Uuid>,
         metadata: Option<(TenantMetaKey, String)>,
-        tag: Option<(String, String)>,
+        tag: TenantTagFilter,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {
@@ -368,32 +374,29 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             count_query = count_query.filter(dsl);
         }
 
-        if let Some((meta, value)) = tag {
-            let dsl = tenant_tag_dsl::meta
-                .contains(to_value(meta).unwrap())
-                .and(tenant_tag_dsl::value.eq(value));
+        if let Some(tag_value) = tag.value {
+            let dsl = tenant_tag_dsl::value.eq(tag_value);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
+        }
 
+        if let Some((meta_key, meta_value)) = tag.meta {
+            let dsl = tenant_tag_dsl::meta.contains(json!({
+                meta_key: meta_value
+            }));
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }
 
         if let Some((meta_key, value)) = metadata {
-            let json_filter = format!(
-                "LOWER(tenant.meta::text)::jsonb @> LOWER('{}'::text)::jsonb",
-                serde_json::to_string(&json!({
-                    meta_key.to_string().to_lowercase(): value.to_owned()
-                }))
-                .unwrap()
-            );
-
-            let dsl = sql::<diesel::sql_types::Bool>(&json_filter);
+            let dsl = tenant_metadata_containment(&meta_key, &value)?;
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }
 
         // Get total of records
         let total = count_query
-            .select(diesel::dsl::count_star())
+            .select(diesel::dsl::count(tenant_dsl::id).aggregate_distinct())
             .first::<i64>(conn)
             .map_err(|e| {
                 fetching_err(format!("Failed to count tenants: {}", e))
@@ -473,6 +476,30 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
     }
 }
 
+type TenantMetadataContainment =
+    SqlLiteral<Bool, UncheckedBind<SqlLiteral<Bool>, AsExprOf<String, Text>>>;
+
+/// Builds the case-insensitive `tenant.meta @> {key: value}` filter.
+///
+/// The JSON document is sent as a bind parameter: both the key (through
+/// `TenantMetaKey::Custom`) and the value are client-controlled, so they must
+/// never be interpolated into the SQL text.
+fn tenant_metadata_containment(
+    meta_key: &TenantMetaKey,
+    value: &str,
+) -> Result<TenantMetadataContainment, MappedErrors> {
+    let document = serde_json::to_string(&json!({
+        meta_key.to_string().to_lowercase(): value
+    }))
+    .map_err(|e| {
+        fetching_err(format!("Failed to serialize metadata filter: {e}"))
+    })?;
+
+    Ok(sql::<Bool>("LOWER(tenant.meta::text)::jsonb @> LOWER(")
+        .bind::<Text, _>(document)
+        .sql(")::jsonb"))
+}
+
 fn map_tenant_model_to_dto(record: TenantModel) -> Tenant {
     Tenant {
         id: Some(record.id),
@@ -500,5 +527,31 @@ fn map_tenant_model_to_dto(record: TenantModel) -> Tenant {
         owners: Children::Records(vec![]),
         manager: None,
         tags: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use diesel::{debug_query, pg::Pg};
+
+    #[test]
+    fn metadata_filter_binds_quotes_instead_of_interpolating_them() {
+        let injection = "x') OR (SELECT pg_sleep(5)) IS NULL OR ('";
+        let filter = tenant_metadata_containment(
+            &TenantMetaKey::Custom(injection.to_string()),
+            injection,
+        )
+        .unwrap();
+
+        let rendered = debug_query::<Pg, _>(&filter).to_string();
+        let (sql_text, binds) = rendered.split_once(" -- binds: ").unwrap();
+
+        assert_eq!(
+            sql_text,
+            "LOWER(tenant.meta::text)::jsonb @> LOWER($1)::jsonb"
+        );
+        assert!(!sql_text.contains('\''));
+        assert!(binds.contains("pg_sleep"));
     }
 }

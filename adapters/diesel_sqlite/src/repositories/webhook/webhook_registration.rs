@@ -146,7 +146,7 @@ mod tests {
     use myc_core::domain::{
         dtos::webhook::{
             PayloadId, WebHook, WebHookExecutionStatus, WebHookPayloadArtifact,
-            WebHookTrigger,
+            WebHookRetryPolicy, WebHookTrigger,
         },
         entities::{WebHookDeletion, WebHookFetching, WebHookUpdating},
     };
@@ -235,11 +235,14 @@ mod tests {
                 }
             };
 
+        let retry_policy = WebHookRetryPolicy::new(30, 3600, 900);
+
         let pending = match fetching
             .fetch_execution_event(
                 10,
                 5,
                 Some(vec![WebHookExecutionStatus::Pending]),
+                retry_policy,
             )
             .await?
         {
@@ -248,6 +251,47 @@ mod tests {
         };
         assert_eq!(pending.len(), 1);
         assert_eq!(pending[0].id, Some(execution_id));
+
+        // A freshly failed event is still serving its back-off: `attempted` was
+        // stamped by the update below, and `backoff(1)` is 60s away.
+        let mut failed = pending[0].clone();
+        failed.status = Some(WebHookExecutionStatus::Failed);
+        failed.attempts = Some(1);
+        updating.update_execution_event(failed).await?;
+
+        let too_soon = fetching
+            .fetch_execution_event(
+                10,
+                5,
+                Some(vec![
+                    WebHookExecutionStatus::Pending,
+                    WebHookExecutionStatus::Failed,
+                ]),
+                retry_policy,
+            )
+            .await?;
+        assert!(
+            matches!(too_soon, FetchManyResponseKind::Found(ref v) if v.is_empty()),
+            "a just-failed event must not be handed out again immediately"
+        );
+
+        // With a zero base the same event is due at once -- proving the
+        // exclusion above came from the back-off and not from the status.
+        let due_now = fetching
+            .fetch_execution_event(
+                10,
+                5,
+                Some(vec![
+                    WebHookExecutionStatus::Pending,
+                    WebHookExecutionStatus::Failed,
+                ]),
+                WebHookRetryPolicy::new(0, 0, 900),
+            )
+            .await?;
+        assert!(
+            matches!(due_now, FetchManyResponseKind::Found(ref v) if v.len() == 1),
+            "an elapsed back-off must make the event selectable again"
+        );
 
         let mut executed = pending[0].clone();
         executed.status = Some(WebHookExecutionStatus::Success);
@@ -259,6 +303,7 @@ mod tests {
                 10,
                 5,
                 Some(vec![WebHookExecutionStatus::Pending]),
+                retry_policy,
             )
             .await?;
         assert!(matches!(

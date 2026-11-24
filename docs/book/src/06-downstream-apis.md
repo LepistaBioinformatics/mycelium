@@ -171,6 +171,43 @@ methods = ["ALL"]
 
 ---
 
+## Retrying transient failures
+
+A route can retry requests that fail with a connection error or with one of
+the configured statuses. Retries are off unless the route sets `retry`:
+
+```toml
+[[api-service.path]]
+group = "protected"
+path = "/api/reports/*"
+methods = ["GET", "PUT"]
+retry = { maxAttempts = 3, baseDelayMs = 100, maxDelayMs = 2000, retryOnStatus = [502, 503, 504] }
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `maxAttempts` | `3` | Total attempts, including the first one (1 to 10) |
+| `baseDelayMs` | `100` | Base of the back-off. The n-th retry waits `min(baseDelayMs * n², maxDelayMs)` |
+| `maxDelayMs` | `2000` | Upper bound of a single wait. Must be at least `baseDelayMs` |
+| `retryOnStatus` | `[502, 503, 504]` | Downstream statuses that trigger a retry. Only `429` and `5xx` are accepted |
+| `retryNonIdempotent` | `false` | Also retry `POST`, `PATCH` and `CONNECT` |
+
+Things to keep in mind:
+
+- Only idempotent methods (`GET`, `HEAD`, `OPTIONS`, `PUT`, `DELETE`,
+  `TRACE`) are retried by default. With `retryNonIdempotent = true`, the other
+  methods are retried on connection failures and configured statuses, but
+  never after a timeout or a broken response, since the service may already
+  have acted on the request.
+- The request body of a retried route is held in memory so it can be sent
+  again. Bodies above 512 KB are rejected with `400`.
+- When every attempt fails, the client receives the last status or error.
+  Response callbacks run once, on that final result.
+- The worst-case latency is `maxAttempts` times the gateway timeout, plus the
+  back-off delays.
+
+---
+
 ## Webhook routes — identity from request body
 
 Some callers (like Telegram) don't send a JWT. Instead, the user's identity is in the request
@@ -229,6 +266,11 @@ serviceType = "rest-api"
 The `x-mycelium-profile` value is a Base64-encoded, ZSTD-compressed JSON object. Use the
 [Python SDK](https://github.com/LepistaBioinformatics/mycelium-sdk-py) or decode it manually
 to read tenant memberships, roles, and access scopes.
+Grants the user holds on linked peer instances travel apart, under `federatedResources`; the SDK
+filters ignore them unless asked (see [Federated Grants](./29-federated-grants.md#in-the-profile)).
+
+Every request that carries `x-mycelium-profile` also carries `x-mycelium-profile-signature`, which lets your service prove
+the profile came from the gateway. See [Downstream Profile Signature](./27-downstream-profile-signature.md).
 
 ---
 
@@ -277,6 +319,106 @@ identitySource = "telegram"
 
 ---
 
+## Sending emails from a service (notifications)
+
+A downstream service can ask the gateway to send an email on its behalf, for
+example from a background job that has no user session. The gateway renders an
+operator-deployed template, sets the sender and the attribution itself, and
+queues one message per recipient.
+
+The feature is off for every service until the service declares a
+`notifications` block:
+
+```toml
+[core.serviceNotifications]
+templatesDir = "service-templates"   # required once any service enables notifications
+# senderTagMode = "header"           # header | plus
+# maxConnectionStringTtlInDays = 90
+# retentionDays = 90
+
+[api.services]
+
+[[service-01]]
+host = "service-01.internal:8080"
+protocol = "http"
+
+[service-01.notifications]
+senderTag = "service-01"
+displayName = "Service 01"
+issuerRoles = ["service-01-admin"]
+recipientPolicy = "owner"            # owner | tenantMembers | domains | any
+templates = ["welcome"]
+quotaPerHour = 100                   # shared by every gateway pod
+maxRecipientsPerMessage = 10         # must not exceed quotaPerHour
+```
+
+Templates live at `<templatesDir>/<senderTag>/<locale>/<name>.jinja` (body) and
+`<name>.subject`. Every declared template must exist for `en-us`. A missing or
+malformed template stops the gateway at boot.
+
+**Issuing a string.** A user holding one of the `issuerRoles` calls
+`POST /_adm/beginners/tokens/notifications` (or the JSON-RPC method
+`beginners.tokens.createNotification`) with the service `senderTag`. The
+returned connection string works only on the send endpoint: every other surface
+rejects it.
+
+`beginners.tokens.listNotificationServices` returns the services the caller can
+issue for, the tenants each string can be bound to and the instance
+`maxConnectionStringTtlInDays`, so a UI can offer only valid choices.
+
+**Sending.** The service calls `POST /_adm/notifications/email` with the string
+in the `x-mycelium-connection-string` header:
+
+```json
+{ "to": ["user@example.com"], "template": "welcome", "variables": { "name": "Ana" }, "locale": "pt-br" }
+```
+
+- The body accepts only these four fields. The service cannot choose the
+  sender, the reply address, the subject, headers or raw HTML.
+- `variables` holds strings, numbers and booleans only, at most 8192 bytes as
+  compact JSON.
+- Each `to` entry must be one bare address.
+- The gateway re-checks the string creator on every send. If the account was
+  deactivated, the role revoked or the service disabled, the send is refused.
+- Answers: `202` with one message id per recipient; `401` for a missing,
+  tampered, expired, revoked or general string; `403` for a disabled service,
+  an issuer no longer allowed or a recipient outside the policy; `422` for an
+  invalid body; `429` with `Retry-After` when the hourly quota is spent.
+
+> **The connection string is a long-lived secret.** Store it like a password
+> and never log it.
+
+### Operator notes
+
+- **Rollout gate.** Add the first `notifications` block only after every
+  gateway pod runs a version that supports it. Older pods answer `401` to
+  notification strings while the rollout is in progress.
+- **Rollback rule.** Before you roll back to a version without this feature,
+  delete every notification connection string. An older binary cannot read
+  them, and it fails to list the connection strings of the accounts that own
+  them.
+- **Sender tag mode.** `header` (the default) sends from `noreplyEmail`
+  unchanged and carries the service in the `X-Mycelium-Source-Service`
+  header. It works with every provider. `plus` sends from
+  `<local>+<senderTag>@<domain>`. Turn it on only after you confirm that your
+  provider accepts those senders:
+  - **Google SMTP** (`smtp.gmail.com`) rejects or rewrites a `From` that is
+    not the authenticated account or a configured "send as" alias. Each
+    `+tag` address needs an alias, or use the SMTP relay
+    (`smtp-relay.gmail.com`) configured for the domain.
+  - **Azure Communication Services Email** accepts only `MailFrom` usernames
+    registered on the verified domain, so each `<noreply>+<tag>` must be
+    registered.
+
+  Neither provider has been tested with `plus`. When in doubt, keep `header`:
+  the display name and the `X-Mycelium-*` headers carry the attribution in
+  both modes.
+- **Retention.** The dispatch trace (`notification_dispatch`) records who sent
+  what to whom, without the template variables. Rows older than
+  `retentionDays` are purged at most once an hour.
+
+---
+
 ## Troubleshooting
 
 **Route not matching** — Check that the path has a wildcard (`/api/*`) if you want to match
@@ -318,3 +460,4 @@ Use `acceptInsecureRouting = true` on the route if the downstream uses a self-si
 | `secretName` | No | Reference to a secret defined at service level |
 | `identitySource` | No | Body-based IdP. Currently: `"telegram"` |
 | `acceptInsecureRouting` | No | Allow self-signed TLS certs on downstream |
+| `retry` | No | Retry policy for transient failures (see above) |

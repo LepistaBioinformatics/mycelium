@@ -7,9 +7,11 @@ pub mod encryption_key;
 pub mod error_code;
 pub mod guest_role;
 pub mod guest_user;
+pub mod hosted_login;
 pub mod instance_settings;
 pub mod licensed_resources;
 pub mod message;
+pub mod notification_dispatch;
 pub mod profile;
 pub mod resource_audit_log;
 pub mod tenant;
@@ -26,9 +28,11 @@ use encryption_key::*;
 use error_code::*;
 use guest_role::*;
 use guest_user::*;
+use hosted_login::*;
 use instance_settings::*;
 use licensed_resources::*;
 use message::*;
+use notification_dispatch::*;
 use optional_written_by_parser::*;
 use profile::*;
 use resource_audit_log::*;
@@ -71,12 +75,17 @@ module! {
             GuestUserOnAccountUpdatingSqlDbRepository,
             GuestUserOnAccountFetchingSqlDbRepository,
             GuestUserRegistrationSqlDbRepository,
+            HostedLoginSessionFetchingSqlDbRepository,
+            HostedLoginSessionInvalidationSqlDbRepository,
+            HostedLoginSessionRegistrationSqlDbRepository,
+            HostedLoginSessionUpdatingSqlDbRepository,
             InstanceSettingsFetchingSqlDbRepository,
             InstanceSettingsRegistrationSqlDbRepository,
             ProfileFetchingSqlDbRepository,
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,
             LocalMessageWriteSqlDbRepository,
+            NotificationDispatchRegistrationSqlDbRepository,
             ResourceAuditLogFetchingSqlDbRepository,
             ResourceAuditLogRegistrationSqlDbRepository,
             TenantDeletionSqlDbRepository,
@@ -95,6 +104,7 @@ module! {
             UserRegistrationSqlDbRepository,
             UserUpdatingSqlDbRepository,
             WebHookDeletionSqlDbRepository,
+            WebHookExecutionFetchingSqlDbRepository,
             WebHookFetchingSqlDbRepository,
             WebHookRegistrationSqlDbRepository,
             WebHookUpdatingSqlDbRepository,

@@ -10,15 +10,12 @@ use crate::{
         entities::{LocalMessageWrite, TenantFetching, TokenRegistration},
     },
     models::AccountLifeCycle,
-    settings::DEFAULT_TENANT_ID_KEY,
-    use_cases::support::dispatch_notification,
 };
 
+use super::register_and_notify_connection_string::register_and_notify_connection_string;
+
 use chrono::{Duration, Local};
-use mycelium_base::{
-    entities::CreateResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
-};
+use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 use uuid::Uuid;
 
 /// Create a connection string
@@ -83,71 +80,16 @@ pub async fn create_connection_string(
         )
         .await?;
 
-    // ? -----------------------------------------------------------------------
-    // ? Register the token
-    // ? -----------------------------------------------------------------------
-
-    if let CreateResponseKind::NotCreated(_, msg) = token_registration_repo
-        .create_connection_string(
-            role_scoped_connection_string.to_owned(),
-            expires_at,
-        )
-        .await?
-    {
-        tracing::error!("Unable to register connection string: {msg}");
-        return use_case_err("Unable to register token").as_error();
-    };
-
-    // ? -----------------------------------------------------------------------
-    // ? Notify guest user
-    // ? -----------------------------------------------------------------------
-
-    let mut parameters = vec![(
-        "expires_in",
-        format_expiration_as_human_readable(expiration),
-    )];
-
-    if let Some(t_id) = tenant_id {
-        parameters.push((DEFAULT_TENANT_ID_KEY, t_id.to_string()));
-    }
-
-    if let Err(err) = dispatch_notification(
-        parameters,
-        "email/create-connection-string",
-        life_cycle_settings,
+    register_and_notify_connection_string(
+        role_scoped_connection_string,
+        expires_at,
+        expiration,
+        tenant_id,
         Email::from_string(owner.email.to_owned())?,
-        None,
+        life_cycle_settings,
+        token_registration_repo,
         message_sending_repo,
         tenant_fetching_repo,
     )
     .await
-    {
-        tracing::error!("Unable to send email: {err}");
-        return use_case_err("Unable to notify user")
-            .with_code(NativeErrorCodes::MYC00010)
-            .as_error();
-    };
-
-    // ? -----------------------------------------------------------------------
-    // ? Send user the token
-    // ? -----------------------------------------------------------------------
-
-    Ok(role_scoped_connection_string.scope.to_string())
-}
-
-fn format_expiration_as_human_readable(expiration: i64) -> String {
-    let duration = Duration::seconds(expiration);
-    let days = duration.num_days();
-    let hours = duration.num_hours() % 24;
-    let minutes = duration.num_minutes() % 60;
-
-    if days > 0 {
-        return format!("{days}d");
-    }
-
-    if hours > 0 {
-        return format!("{hours}h");
-    }
-
-    format!("{minutes}m")
 }

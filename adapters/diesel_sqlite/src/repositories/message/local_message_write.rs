@@ -164,6 +164,7 @@ mod tests {
             cc: None,
             subject: "Welcome".into(),
             body: "<p>Hello</p>".into(),
+            headers: vec![],
         };
         let event = MessageSendingEvent::new(message);
         let event_id = event.id;

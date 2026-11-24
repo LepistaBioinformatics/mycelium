@@ -1,6 +1,8 @@
 use crate::models::active_backend_modules::SqlAppModule;
 use futures::future::join_all;
-use myc_core::domain::dtos::webhook::WebHookExecutionStatus;
+use myc_core::domain::dtos::webhook::{
+    WebHookExecutionStatus, WebHookRetryPolicy,
+};
 use myc_core::domain::entities::WebHookUpdating;
 use myc_core::models::CoreConfig;
 use myc_core::{
@@ -53,10 +55,11 @@ pub(crate) async fn webhook_dispatcher(
         interval.tick().await;
 
         //
-        // Wait for a random time between 1 and the consume interval. This time
-        // should avoid the webhook dispatcher to start at the same time as the
-        // email dispatcher and avoid the simultaneous consumption of the same
-        // event over multiple containers.
+        // Wait for a random time between 1 and the consume interval. This only
+        // staggers this dispatcher against the email one so they do not both
+        // wake on the same second; it is NOT what keeps two replicas off the
+        // same event. That is the repository's claim (`FOR UPDATE SKIP
+        // LOCKED`), which jitter alone never provided.
         //
         let random_time =
             rand::thread_rng().gen_range(1..=interval.period().as_secs());
@@ -68,6 +71,31 @@ pub(crate) async fn webhook_dispatcher(
 
             //
             // Fetch webhook dispatch events
+            //
+            let retry_policy = WebHookRetryPolicy::new(
+                webhook_config
+                    .retry_base_in_secs
+                    .async_get_or_error()
+                    .await
+                    .unwrap_or(30),
+                webhook_config
+                    .retry_cap_in_secs
+                    .async_get_or_error()
+                    .await
+                    .unwrap_or(3600),
+                webhook_config
+                    .visibility_timeout_in_secs
+                    .async_get_or_error()
+                    .await
+                    .unwrap_or(900),
+            );
+
+            //
+            // `Processing` is deliberately absent from this filter. A row a
+            // live pod is working on must not be handed out again, and one left
+            // behind by a pod that died is picked up by the repository's own
+            // stale-claim branch, which keys off the lease clock rather than
+            // off this list.
             //
             let events_response = match read_repo
                 .fetch_execution_event(
@@ -85,6 +113,7 @@ pub(crate) async fn webhook_dispatcher(
                         WebHookExecutionStatus::Pending,
                         WebHookExecutionStatus::Failed,
                     ]),
+                    retry_policy,
                 )
                 .await
             {

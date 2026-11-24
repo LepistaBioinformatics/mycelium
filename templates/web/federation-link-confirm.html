@@ -1,0 +1,21 @@
+{% extends "web/federation-link-layout.html" %}
+{% block title %}Confirm the link with {{ peer_name }}{% endblock title %}
+{% block content %}
+<h1>Confirm the link</h1>
+<p>Only confirm if you started this link yourself.</p>
+<dl class="accounts">
+  <dt>Your account here, on {{ instance_name }}</dt>
+  <dd>{{ local_email }}</dd>
+  <dt>will be linked to the account on {{ peer_name }}</dt>
+  <dd>{{ peer_email }}</dd>
+</dl>
+<p>
+  {{ peer_name }} will receive the access your account holds here. You can
+  remove the link at any time.
+</p>
+<form method="post" action="{{ action }}">
+  <input type="hidden" name="consent" value="{{ consent }}" />
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+  <button type="submit">Link the accounts</button>
+</form>
+{% endblock content %}

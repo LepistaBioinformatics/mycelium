@@ -22,6 +22,10 @@ pub fn methods() -> Vec<serde_json::Value> {
         schema::param_schema_value::<params::FetchTenantPublicInfoParams>();
     let create_connection_string_schema =
         schema::param_schema_value::<params::CreateConnectionStringParams>();
+    let create_notification_connection_string_schema =
+        schema::param_schema_value::<
+            params::CreateNotificationConnectionStringParams,
+        >();
     let revoke_connection_string_schema =
         schema::param_schema_value::<params::RevokeConnectionStringParams>();
     let delete_connection_string_schema =
@@ -169,6 +173,24 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
+            "name": method_names::BEGINNERS_TOKENS_CREATE_NOTIFICATION,
+            "summary": "Create notification connection string",
+            "description": "Creates a connection string a downstream service uses to send emails through the gateway. It carries the notify:email scope and the service senderTag, and is rejected on every other gateway surface. Errors: MYC00035 (invalid expiration, or tenant required), MYC00036 (service notifications not enabled), MYC00037 (issuer not allowed).",
+            "tags": [{ "name": "beginners" }, { "name": "tokens" }],
+            "params": [{ "name": "params", "required": true, "schema": create_notification_connection_string_schema }],
+            "result": { "name": "result", "description": "Object with connectionString", "schema": { "type": "object" } },
+            "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
+        }),
+        serde_json::json!({
+            "name": method_names::BEGINNERS_TOKENS_LIST_NOTIFICATION_SERVICES,
+            "summary": "List notification issuance options",
+            "description": "Lists the services the caller can issue notification connection strings for (senderTag, displayName, recipientPolicy, the tenants a string can be bound to and whether it can be issued without a tenant), plus the instance maxConnectionStringTtlInDays. Every option passes the same issuer check as beginners.tokens.createNotification.",
+            "tags": [{ "name": "beginners" }, { "name": "tokens" }],
+            "params": [],
+            "result": { "name": "result", "description": "NotificationIssuanceOptions", "schema": { "type": "object" } },
+            "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
+        }),
+        serde_json::json!({
             "name": method_names::BEGINNERS_TOKENS_LIST,
             "summary": "List my connection strings",
             "description": "Lists all connection strings for the current user.",
@@ -277,4 +299,45 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::rpc::{
+        method_names,
+        openrpc::{generate_openrpc_spec, OpenRpcSpecConfig},
+    };
+
+    #[test]
+    fn openrpc_spec_documents_the_notification_issuance_options_method() {
+        let spec = generate_openrpc_spec(&OpenRpcSpecConfig::default());
+
+        let documented =
+            spec["methods"].as_array().unwrap().iter().any(|method| {
+                method["name"]
+                    == method_names::BEGINNERS_TOKENS_LIST_NOTIFICATION_SERVICES
+            });
+
+        assert!(documented);
+    }
+
+    #[test]
+    fn openrpc_spec_documents_the_notification_token_method() {
+        let spec = generate_openrpc_spec(&OpenRpcSpecConfig::default());
+
+        let method = spec["methods"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|method| {
+                method["name"]
+                    == method_names::BEGINNERS_TOKENS_CREATE_NOTIFICATION
+            })
+            .expect("method missing from the OpenRPC spec");
+
+        let properties = &method["params"][0]["schema"]["properties"];
+
+        assert!(properties["senderTag"].is_object(), "{method}");
+        assert!(properties["expiration"].is_object(), "{method}");
+    }
 }

@@ -48,6 +48,62 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
           fetch-depth: 0
 
+      # Runs before the ~6min cargo-release build so a bad dispatch fails in
+      # seconds. Both checks below fired on run 33205154348, which died at the
+      # bump step with cargo-release's misleading "unsupported release level
+      # beta, only major, minor, and patch are supported".
+      - name: Pre-flight
+        env:
+          TARGET_INPUT: ${{ inputs.custom_version || inputs.release_type }}
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags origin main:refs/remotes/origin/main
+
+          # shared-version = true in release.toml, so every crate carries the
+          # same version; core is the canonical one to read it from.
+          read_version() { grep -m1 '^version = ' "$1" | cut -d'"' -f2; }
+
+          develop_version=$(read_version core/Cargo.toml)
+          main_version=$(git show origin/main:core/Cargo.toml | grep -m1 '^version = ' | cut -d'"' -f2)
+
+          # semver-aware "is $1 strictly lower than $2". `sort -V` ranks
+          # 9.0.0-rc.13 ABOVE 9.0.0, which is backwards for semver; rewriting
+          # the pre-release hyphen as `~` restores the right order, since GNU
+          # sort ranks `~` before everything including the empty string.
+          ver_lt() {
+            [ "$1" = "$2" ] && return 1
+            local a b
+            a=${1/-/\~}
+            b=${2/-/\~}
+            [ "$(printf '%s\n%s\n' "$a" "$b" | sort -V | head -1)" = "$a" ]
+          }
+
+          # A release cut on main bumps the version there. Until that commit is
+          # back-merged, this workflow reads a stale version off develop and
+          # every relative bump is computed from the wrong base -- silently, in
+          # the `rc` case: 9.0.0-rc.13 + rc = 9.0.0-rc.14, a version BEHIND the
+          # already-published 9.0.0. Version comparison rather than ancestry, so
+          # the guard holds whether the back-merge PR is merged or squashed.
+          if ver_lt "$develop_version" "$main_version"; then
+            echo "::error::develop is at $develop_version but main is already at $main_version. Back-merge main into develop before releasing -- see docs/book/src/08-release-process.md."
+            exit 1
+          fi
+
+          # cargo-release refuses rc -> beta (src/ops/version.rs, increment_beta)
+          # but reports it as an unsupported level, which reads like the keyword
+          # itself is gone. Say what actually happened.
+          case "$develop_version" in
+            *-rc.*)
+              if [ "$TARGET_INPUT" = "beta" ]; then
+                echo "::error::Current version is $develop_version. A pre-release cycle cannot go from rc back to beta -- use release_type: rc, or custom_version for a new line."
+                exit 1
+              fi
+              ;;
+          esac
+
+          echo "Pre-flight ok: develop=$develop_version, main=$main_version, target=$TARGET_INPUT"
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
 

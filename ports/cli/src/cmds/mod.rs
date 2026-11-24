@@ -1,4 +1,6 @@
 pub(crate) mod accounts;
 pub(crate) mod error_codes;
+pub(crate) mod federation;
+pub(crate) mod federation_peers;
 pub(crate) mod migrate_dek;
 pub(crate) mod rotate_kek;

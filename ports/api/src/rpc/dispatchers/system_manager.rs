@@ -3,9 +3,10 @@ use super::super::{
     method_names,
     params::{
         DeleteErrorCodeParams, DeleteWebhookParams, GetErrorCodeParams,
-        ListErrorCodesParams, ListWebhooksParams, RegisterErrorCodeParams,
-        RegisterWebhookParams, UpdateErrorCodeMessageAndDetailsParams,
-        UpdateWebhookParams,
+        ListErrorCodesParams, ListWebhookExecutionsParams, ListWebhooksParams,
+        RegisterErrorCodeParams, RegisterWebhookParams,
+        SummarizeWebhookExecutionsParams,
+        UpdateErrorCodeMessageAndDetailsParams, UpdateWebhookParams,
     },
     response_kind::{
         create_response_kind_to_result, delete_response_kind_to_result,
@@ -22,7 +23,7 @@ use myc_core::{
     domain::dtos::{
         http::HttpMethod,
         http_secret::HttpSecret,
-        webhook::{WebHook, WebHookTrigger},
+        webhook::{WebHook, WebHookExecutionStatus, WebHookTrigger},
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::system_manager::{
@@ -31,7 +32,9 @@ use myc_core::{
             register_error_code, update_error_code_message_and_details,
         },
         webhook::{
-            delete_webhook, list_webhooks, register_webhook, update_webhook,
+            delete_webhook, list_webhook_execution_events, list_webhooks,
+            register_webhook, summarize_webhook_execution_events,
+            update_webhook,
         },
     },
 };
@@ -254,6 +257,63 @@ pub async fn dispatch_system_manager(
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
+        }
+        method_names::SYSTEM_MANAGER_WEBHOOKS_LIST_EXECUTIONS => {
+            let p: ListWebhookExecutionsParams = params
+                .map(serde_json::from_value)
+                .transpose()
+                .map_err(|e| invalid_params(e.to_string()))?
+                .unwrap_or_default();
+            let trigger = p
+                .trigger
+                .as_ref()
+                .map(|s| {
+                    WebHookTrigger::from_str(s).map_err(|e| invalid_params(e))
+                })
+                .transpose()?;
+            let status = p
+                .status
+                .as_ref()
+                .map(|s| {
+                    WebHookExecutionStatus::from_str(s)
+                        .map_err(|e| invalid_params(e.to_string()))
+                })
+                .transpose()?;
+            let result = list_webhook_execution_events(
+                profile.to_profile(),
+                trigger,
+                status,
+                p.page_size,
+                p.skip,
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            fetch_many_response_kind_to_result(result)
+        }
+        method_names::SYSTEM_MANAGER_WEBHOOKS_SUMMARIZE_EXECUTIONS => {
+            let p: SummarizeWebhookExecutionsParams = params
+                .map(serde_json::from_value)
+                .transpose()
+                .map_err(|e| invalid_params(e.to_string()))?
+                .unwrap_or_default();
+            let since = p
+                .since
+                .as_deref()
+                .map(|s| {
+                    chrono::DateTime::parse_from_rfc3339(s)
+                        .map(|dt| dt.with_timezone(&chrono::Local))
+                        .map_err(|e| invalid_params(format!("since: {e}")))
+                })
+                .transpose()?;
+            let result = summarize_webhook_execution_events(
+                profile.to_profile(),
+                since,
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            fetch_many_response_kind_to_result(result)
         }
         _ => Err(JsonRpcError {
             code: types::codes::METHOD_NOT_FOUND,

@@ -2,7 +2,8 @@
 
 **Feature:** postgres-only-mode
 **Milestone:** (to slot into ROADMAP — deployment/packaging)
-**Status:** Specified
+**Status:** Shipped — implemented and merged. `adapters/postgres_kv` exists and
+`settings/config.postgres-only.example.toml` is present and parse-tested.
 **Created:** 2026-07-22
 **Scope:** Complex (new KV cache backend + new email-queue substrate + config surface + DI wiring + packaging; workspace-wide feature flags)
 **Branch:** `feat/postgres-only-mode`

@@ -2,6 +2,87 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(notifications)* Add the delivery plumbing for service emails
+- *(notifications)* Add dispatch storage, quota and the recipient policy
+- *(notifications)* Send service emails through the gateway
+- *(federation)* Audit federated resolutions
+- *(federation)* Grant translation table
+- *(error-codes)* Public listing and native codes without registration
+
+### 🐛 Bug Fixes
+
+- *(deps)* Move diesel to 2.4 to take the patched bundled SQLite
+- *(sqlite)* Set created on the tenant management account link
+
+## [9.0.1-beta.5] - 2026-10-22
+
+### 🚀 Features
+
+- *(auth)* Gateway-hosted email login with OAuth 2.0 code + PKCE
+- *(webhook)* Let system managers check webhook execution events
+
+### 🐛 Bug Fixes
+
+- Make the tenant list tag filter match tags
+- *(magic-link)* Cap failed code attempts to stop brute force
+- *(auth)* Count hosted login email case variants as one address
+- *(guest)* Accept only the caller's own pending invitation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
+
+## [9.0.1-beta.4] - 2026-10-14
+
+### 🐛 Bug Fixes
+
+- Bind tenant metadata and account type filters as SQL parameters
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.4
+
+## [9.0.1-beta.3] - 2026-09-22
+
+### 🚀 Features
+
+- *(webhook)* Claim events exclusively, back off exponentially, terminate
+
+### 🐛 Bug Fixes
+
+- *(webhook)* Stop a stored JSON null in propagations panicking the dispatcher
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
+
+## [9.0.1-beta.2] - 2026-09-21
+
+### 🐛 Bug Fixes
+
+- *(licensed_resources)* Drop the SQL log that printed the email in the clear
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.2
+
+## [9.0.1-beta.1] - 2026-08-28
+
+### ⚙️ Miscellaneous Tasks
+
+- Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
+
+## [9.0.0] - 2026-08-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0
+
 ## [9.0.0-rc.13] - 2026-07-29
 
 ### ⚙️ Miscellaneous Tasks

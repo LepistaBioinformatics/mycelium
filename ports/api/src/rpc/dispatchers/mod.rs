@@ -1,9 +1,19 @@
 pub(crate) mod account_manager;
 pub(crate) mod audit;
 pub(crate) mod beginners;
+#[cfg(feature = "federation")]
+pub(crate) mod beginners_federation;
+#[cfg(feature = "federation")]
+pub(crate) mod federation;
+#[cfg(feature = "federation")]
+mod federation_translations;
 pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
 pub(crate) mod managers;
+#[cfg(feature = "federation")]
+mod resolve_own_grants;
+#[cfg(feature = "federation")]
+mod revoke_identity_link;
 pub(crate) mod service;
 pub(crate) mod staff;
 pub(crate) mod subscriptions_manager;
@@ -15,6 +25,8 @@ pub(crate) mod users_manager;
 pub(crate) use account_manager::dispatch_account_manager;
 pub(crate) use audit::dispatch_audit;
 pub(crate) use beginners::dispatch_beginners;
+#[cfg(feature = "federation")]
+pub(crate) use federation::dispatch_federation;
 pub(crate) use gateway_manager::dispatch_gateway_manager;
 pub(crate) use guest_manager::dispatch_guest_manager;
 pub(crate) use managers::dispatch_managers;

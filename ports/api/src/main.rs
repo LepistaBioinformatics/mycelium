@@ -1,6 +1,8 @@
 mod callback_engines;
 mod dispatchers;
 mod dtos;
+#[cfg(feature = "federation")]
+mod federation;
 mod mcp;
 mod middleware;
 mod models;
@@ -8,10 +10,13 @@ mod modifiers;
 mod openapi;
 mod openapi_processor;
 mod otel;
+mod profile_signing;
 mod rest;
+mod revoke_federated_access;
 mod router;
 mod rpc;
 pub(crate) mod settings;
+mod webapp;
 
 // ? ----------------------------------------------------------------------------
 // ? Backend feature guards
@@ -40,6 +45,13 @@ compile_error!(
     "features `postgres-only` and `standalone` are mutually exclusive"
 );
 
+#[cfg(all(feature = "federation", feature = "standalone"))]
+compile_error!(
+    "feature `federation` is not available in `standalone`; build it with \
+     `full` (default) or `--no-default-features --features \
+     postgres-only,federation`"
+);
+
 #[cfg(not(any(
     feature = "standalone",
     feature = "full",
@@ -56,17 +68,30 @@ use crate::openapi_processor::initialize_tools_registry;
 use actix_cors::Cors;
 use actix_web::{
     dev::Service,
-    middleware::{Logger, NormalizePath, TrailingSlash},
+    middleware::{from_fn, NormalizePath, TrailingSlash},
     web, App, HttpServer,
 };
-use actix_web_opentelemetry::RequestTracing;
 use awc::{error::HeaderValue, Client};
 use dispatchers::{
     email_dispatcher, resource_audit_log_dispatcher,
     services_health_dispatcher, webhook_dispatcher,
 };
+#[cfg(feature = "federation")]
+use dispatchers::{
+    forget_stored_assertions, spawn_federation_dispatcher, AssertionPurge,
+    FailedRevocationPurge, FederationDispatcher, FederationRoundPorts,
+    LinkConsentPurge, LinkRequestPurge, RequestNoncePurge, RevocationRound,
+    TombstonePurge,
+};
+#[cfg(feature = "federation")]
+use federation::{
+    build_peer_client, describe_this_instance, prepare_federation,
+    RefreshThrottle, SignedPeerPoster, SignedPeerTombstoneSender,
+};
+use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
+use models::load_service_templates::load_service_templates;
 #[cfg(feature = "full")]
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
@@ -79,6 +104,12 @@ use myc_config::optional_config::OptionalConfig;
 use myc_config::resolve_or_generate_standalone_secret;
 #[cfg(feature = "standalone")]
 use myc_config::secret_resolver::SecretResolver;
+#[cfg(feature = "federation")]
+use myc_core::domain::entities::AssertionStoreWrite;
+#[cfg(feature = "federation")]
+use myc_core::domain::entities::GuestRoleFetching;
+#[cfg(feature = "federation")]
+use myc_core::domain::entities::InstanceSettingsRegistration;
 use myc_core::{
     domain::{
         dtos::{
@@ -87,8 +118,8 @@ use myc_core::{
         },
         entities::{
             GuestRoleRegistration, InstanceSettingsFetching,
-            LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
-            ServiceRead,
+            LocalMessageReading, LocalMessageWrite,
+            NotificationDispatchRegistration, RemoteMessageWrite, ServiceRead,
         },
     },
     models::AccountLifeCycle,
@@ -150,14 +181,26 @@ use openssl::{
     ssl::{SslAcceptor, SslMethod},
     x509::X509,
 };
+use opentelemetry_instrumentation_actix_web::RequestTracing;
 use otel::initialize_otel;
+use profile_signing::prepare_profile_signing;
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
+#[cfg(feature = "federation")]
+use rest::federation::configure_federation_endpoints;
+#[cfg(feature = "federation")]
+use rest::index::{
+    instance_self_description_endpoints, role_catalog_endpoints,
+};
 use rest::{
     audit::resource_audit_trail_endpoints as audit_resource_audit_trail_endpoints,
-    index::{app_public_config_endpoints, heath_check_endpoints},
+    hosted_login::configure as configure_hosted_login_endpoints,
+    index::{
+        app_public_config_endpoints, heath_check_endpoints,
+        profile_signing_jwks_endpoints, public_error_code_endpoints,
+    },
     instance as instance_endpoints,
     manager::{
         account_endpoints as manager_account_endpoints,
@@ -181,6 +224,7 @@ use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 use uuid::Uuid;
+use webapp::{configure_webapp, ServedWebapp};
 
 #[tokio::main]
 pub async fn main() -> std::io::Result<()> {
@@ -330,6 +374,21 @@ pub async fn main() -> std::io::Result<()> {
     let span = tracing::Span::current();
 
     // ? -----------------------------------------------------------------------
+    // ? CHECK THE SERVED WEBAPP
+    //
+    // Only with `[api.webapp]`: the build must be readable and the `webapp`
+    // feature compiled in, or the boot stops (WEBAPP-09).
+    //
+    // ? -----------------------------------------------------------------------
+    let served_webapp =
+        ServedWebapp::prepare(config.api.webapp.as_ref(), &config.api.services)
+            .map_err(|err| {
+                tracing::error!("Error preparing the webapp: {err}");
+
+                std::io::Error::new(std::io::ErrorKind::Other, err)
+            })?;
+
+    // ? -----------------------------------------------------------------------
     // ? INITIALIZE VAULT CONFIGURATION
     //
     // The vault configuration should be initialized before the server starts.
@@ -345,6 +404,24 @@ pub async fn main() -> std::io::Result<()> {
             .instrument(span.to_owned())
             .await;
     }
+
+    // ? -----------------------------------------------------------------------
+    // ? PREPARE DOWNSTREAM PROFILE SIGNING
+    //
+    // Derive one Ed25519 key per connection-string HMAC secret once, after
+    // Vault and before any worker accepts traffic. A secret that cannot be
+    // resolved or a key that fails its self-test aborts the boot.
+    //
+    // ? -----------------------------------------------------------------------
+    let profile_signing =
+        prepare_profile_signing(&config.core.account_life_cycle)
+            .instrument(span.to_owned())
+            .await
+            .map_err(|err| {
+                tracing::error!("Error preparing profile signing: {err}");
+
+                std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+            })?;
 
     // ? -----------------------------------------------------------------------
     // ? CONFIGURE INTERNAL DEPENDENCIES
@@ -380,6 +457,40 @@ pub async fn main() -> std::io::Result<()> {
             tracing::error!("Error initializing modules: {err}");
 
             std::io::Error::new(std::io::ErrorKind::Other, err)
+        })?;
+
+    // ? -----------------------------------------------------------------------
+    // ? PREPARE INSTANCE FEDERATION
+    //
+    // Only with `[core.federation]`: derive the federation keys from the HMAC
+    // secrets and mint (or read back) the instance id. Any failure aborts the
+    // boot. Runs after the modules because the instance id is persisted.
+    //
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "federation")]
+    let federation = prepare_federation(
+        config.federation.as_ref(),
+        &config.core.account_life_cycle,
+        sql_module.resolve_ref() as &dyn InstanceSettingsRegistration,
+    )
+    .instrument(span.to_owned())
+    .await
+    .map_err(|err| {
+        tracing::error!("Error preparing federation: {err}");
+
+        std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+    })?;
+
+    // The client this instance calls its peers with; only when federating.
+    #[cfg(feature = "federation")]
+    let peer_client = federation
+        .as_ref()
+        .map(build_peer_client)
+        .transpose()
+        .map_err(|err| {
+            tracing::error!("Error building the peer client: {err}");
+
+            std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
         })?;
 
     // ? -----------------------------------------------------------------------
@@ -424,6 +535,29 @@ pub async fn main() -> std::io::Result<()> {
         })?;
 
     // ? -----------------------------------------------------------------------
+    // ? LOAD THE SERVICE NOTIFICATION TEMPLATES
+    //
+    // Loaded and validated before the server accepts traffic: a malformed
+    // template, or a declared one missing for the default locale, fails the
+    // boot. Without any service declaring `notifications`, nothing is loaded
+    // and no `templatesDir` is required.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Loading service notification templates");
+
+    let service_templates = web::Data::new(
+        load_service_templates(
+            &config.api.services,
+            &config.core.service_notifications,
+        )
+        .map_err(|err| {
+            tracing::error!("Error loading service templates: {err}");
+
+            std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+        })?,
+    );
+
+    // ? -----------------------------------------------------------------------
     // ? FIRE THE EMAIL DISPATCHER
     //
     // The email dispatcher should be fired to allow emails to be sent.
@@ -437,6 +571,10 @@ pub async fn main() -> std::io::Result<()> {
         HasComponent::<dyn LocalMessageReading>::resolve(&*sql_module),
         HasComponent::<dyn LocalMessageWrite>::resolve(&*sql_module),
         HasComponent::<dyn RemoteMessageWrite>::resolve(&*notifier_module),
+        HasComponent::<dyn NotificationDispatchRegistration>::resolve(
+            &*sql_module,
+        ),
+        config.core.service_notifications.retention_days,
     )
     .instrument(span.to_owned())
     .await;
@@ -482,6 +620,69 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
+    // ? DROP STORED ASSERTIONS BEFORE SERVING
+    //
+    // This instance cannot know which tombstones it missed while it was down:
+    // every federated grant is asked again before it is served (FED-24).
+    //
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "federation")]
+    if federation.is_some() {
+        forget_stored_assertions(
+            sql_module.resolve_ref() as &dyn AssertionStoreWrite
+        )
+        .await;
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? FIRE THE FEDERATION DISPATCHER
+    //
+    // Periodic peer health rounds (re-handshake, key refresh, circuit breaker,
+    // nonce purge). Only when `[core.federation]` is present. The handle is
+    // kept and awaited on shutdown.
+    //
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "federation")]
+    let federation_dispatcher = federation
+        .as_ref()
+        .zip(peer_client.clone())
+        .map(|(prepared, peer_client)| {
+            info!("Fire federation dispatcher");
+
+            let sender = Arc::new(SignedPeerTombstoneSender {
+                poster: SignedPeerPoster {
+                    prepared: prepared.clone(),
+                    peer_client: peer_client.clone(),
+                },
+            });
+
+            spawn_federation_dispatcher(
+                FederationRoundPorts {
+                    peer_read: sql_module.resolve(),
+                    peer_write: sql_module.resolve(),
+                    purges: vec![
+                        Arc::new(RequestNoncePurge(sql_module.resolve())),
+                        Arc::new(LinkRequestPurge(sql_module.resolve())),
+                        Arc::new(LinkConsentPurge(sql_module.resolve())),
+                        Arc::new(AssertionPurge(sql_module.resolve())),
+                        Arc::new(TombstonePurge(sql_module.resolve())),
+                        Arc::new(FailedRevocationPurge(sql_module.resolve())),
+                    ],
+                    settings: sql_module.resolve(),
+                    peer_client,
+                },
+                RevocationRound {
+                    outbox: sql_module.resolve(),
+                    peers: sql_module.resolve(),
+                    sender,
+                    settings: sql_module.resolve(),
+                },
+                describe_this_instance(prepared, false).assertion_kinds,
+                prepared.config.max_failures_before_open,
+            )
+        });
+
+    // ? -----------------------------------------------------------------------
     // ? STAFF BOOTSTRAP — CHECK CLAIM STATE
     //
     // Checks whether the `STAFF_BOOTSTRAP_KEY` row exists in the generalized
@@ -504,6 +705,15 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Startup the server configuration");
 
+    // Shared by every worker: once one sees the staff bootstrap claimed, the
+    // sign-in gate stops reading the database everywhere in this process.
+    let staff_bootstrap_claimed =
+        web::Data::new(StaffBootstrapClaimed::default());
+
+    // One throttle of background federated refreshes for every worker
+    #[cfg(feature = "federation")]
+    let refresh_throttle = web::Data::new(RefreshThrottle::default());
+
     let server = HttpServer::new(move || {
         //
         // Here we should clone the config to avoid borrowing issues
@@ -512,6 +722,8 @@ pub async fn main() -> std::io::Result<()> {
         let forward_api_config = config.api.clone();
         let auth_config = config.auth.clone();
         let token_config = config.core.account_life_cycle.clone();
+        let service_notifications_config =
+            config.core.service_notifications.clone();
 
         //
         // Configure the CORS policy
@@ -557,6 +769,11 @@ pub async fn main() -> std::io::Result<()> {
             //
             // Configure tracing and logging
             //
+            // One `info` line per served request with the requester identity.
+            // Registered before the tracing middlewares so it runs inside the
+            // request span (actix runs the last registered wrap first).
+            //
+            .wrap(from_fn(log_served_request))
             .wrap(RequestTracing::default())
             .wrap(TracingLogger::default())
             //
@@ -565,7 +782,10 @@ pub async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(openrpc_spec_config))
             .app_data(web::Data::new(tools_registry_schema.clone()))
             .app_data(web::Data::new(token_config).clone())
+            .app_data(web::Data::new(service_notifications_config))
+            .app_data(service_templates.clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
+            .app_data(staff_bootstrap_claimed.clone())
             //
             // Inject modules
             //
@@ -581,6 +801,38 @@ pub async fn main() -> std::io::Result<()> {
         let base_app =
             base_app.app_data(web::Data::from(shared_module.clone()));
 
+        // Instance self-description (FED-03), public like `/app-config`.
+        // `None` when `[core.federation]` is absent; the endpoint then and
+        // while the runtime switch is off answers 404.
+        #[cfg(feature = "federation")]
+        let base_app = {
+            let instance_settings: Arc<dyn InstanceSettingsFetching> =
+                sql_module.resolve();
+            let guest_roles: Arc<dyn GuestRoleFetching> = sql_module.resolve();
+
+            let base_app = base_app
+                .app_data(web::Data::new(federation.clone()))
+                .app_data(refresh_throttle.clone())
+                .app_data(web::Data::from(instance_settings))
+                .app_data(web::Data::from(guest_roles))
+                .configure(instance_self_description_endpoints::configure)
+                .configure(role_catalog_endpoints::configure);
+
+            // Peer-authenticated endpoints (`/federation/*`), only when
+            // `[core.federation]` is present.
+            match federation.as_ref().zip(peer_client.clone()) {
+                Some((prepared, peer_client)) => {
+                    configure_federation_endpoints(
+                        base_app,
+                        &sql_module,
+                        prepared,
+                        peer_client,
+                    )
+                }
+                None => base_app,
+            }
+        };
+
         let base_app = base_app
             //
             // Index endpoints
@@ -595,6 +847,10 @@ pub async fn main() -> std::io::Result<()> {
                 web::scope("/app-config")
                     .configure(app_public_config_endpoints::configure),
             )
+            .service(
+                web::scope("/error-codes")
+                    .configure(public_error_code_endpoints::configure),
+            )
             //
             // The well known openid configuration path
             //
@@ -602,6 +858,13 @@ pub async fn main() -> std::io::Result<()> {
             // from the auth0 server.
             //
             .configure(well_known_endpoints::configure)
+            //
+            // Public keys of the downstream profile signature (JWKS)
+            //
+            // Downstream verifiers read them from MYCELIUM_JWKS_URL.
+            //
+            .app_data(web::Data::new(profile_signing.published_keys.clone()))
+            .configure(profile_signing_jwks_endpoints::configure)
             //
             // Configure tools routes
             //
@@ -637,17 +900,6 @@ pub async fn main() -> std::io::Result<()> {
                             .show_common_extensions(true)
                             .request_snippets_enabled(true),
                     ),
-            )
-            //
-            // Configure anti-log elements
-            //
-            // Filter docs and common routes from the logs.
-            //
-            .wrap(
-                Logger::default()
-                    .exclude_regex("/health/*")
-                    .exclude_regex("/doc/swagger/*")
-                    .exclude_regex("/doc/redoc/*"),
             );
 
         // ? -------------------------------------------------------------------
@@ -720,6 +972,14 @@ pub async fn main() -> std::io::Result<()> {
                 web::scope("instance").configure(instance_endpoints::configure),
             )
             //
+            // Hosted email login (public -- the gateway pages collect the
+            // email and code, then hand the client an authorization code).
+            //
+            .service(
+                web::scope("hosted-login")
+                    .configure(configure_hosted_login_endpoints),
+            )
+            //
             // JSON-RPC (single + batch at _adm/rpc)
             //
             .service(
@@ -741,6 +1001,15 @@ pub async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("audit")
                     .configure(audit_resource_audit_trail_endpoints::configure),
+            )
+            //
+            // Downstream service notifications. Authenticated only by a
+            // notification connection string inside the handler: no
+            // `wrap_fn`/role header and no JWT extractor.
+            //
+            .service(
+                web::scope("notifications")
+                    .configure(rest::notifications::configure),
             )
             //
             // Role Scoped Endpoints
@@ -790,6 +1059,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             .app_data(web::Data::new(Client::new()))
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
+            .app_data(web::Data::new(profile_signing.state.clone()))
             .wrap_fn(|mut req, srv| {
                 req.headers_mut().insert(
                     HeaderName::from_str(DEFAULT_REQUEST_ID_KEY).unwrap(),
@@ -799,6 +1069,10 @@ pub async fn main() -> std::io::Result<()> {
 
                 srv.call(req)
             })
+            //
+            // The webapp build under /_app, when served
+            //
+            .configure(|config| configure_webapp(config, served_webapp.clone()))
             .default_service(web::to(route_request))
     });
 
@@ -862,22 +1136,42 @@ pub async fn main() -> std::io::Result<()> {
         builder.set_private_key(&key).unwrap();
 
         info!("Fire the server with TLS");
-        return server
+        let served = server
             .bind_openssl(format!("{}:{}", address.0, address.1), builder)?
             .workers(api_config.service_workers.to_owned() as usize)
             .run()
             .await;
+
+        #[cfg(feature = "federation")]
+        stop_federation_dispatcher(federation_dispatcher).await;
+
+        return served;
     }
 
     // ? -----------------------------------------------------------------------
     // ? WITHOUT TLS OTHERWISE
     // ? -----------------------------------------------------------------------
     info!("Fire the server without TLS");
-    server
+    let served = server
         .bind(address)?
         .workers(api_config.service_workers as usize)
         .run()
-        .await
+        .await;
+
+    #[cfg(feature = "federation")]
+    stop_federation_dispatcher(federation_dispatcher).await;
+
+    served
+}
+
+#[cfg(feature = "federation")]
+async fn stop_federation_dispatcher(dispatcher: Option<FederationDispatcher>) {
+    let Some(dispatcher) = dispatcher else {
+        return;
+    };
+
+    info!("Stopping federation dispatcher");
+    dispatcher.shutdown().await;
 }
 
 /// Resolve one standalone secret (SM-R9), honoring an operator-supplied

@@ -261,6 +261,18 @@ Route configuration lives here. See [Downstream APIs](./06-downstream-apis.md) f
 
 ---
 
+### `[api.webapp]` — Serve the webapp (optional)
+
+Serves a webapp build under `/_app/`. Needs a gateway built with the `webapp` feature. See [Serving the Webapp](./30-serving-the-webapp.md).
+
+```toml
+[api.webapp]
+distDir = "/srv/mycelium-webapp/dist"      # the webapp dist/, built with VITE_BASE_PATH=/_app/
+hostedLoginClientId = "webapp-01"          # optional -- published by GET /app-config
+```
+
+---
+
 ## Next steps
 
 - [Downstream APIs](./06-downstream-apis.md) — Configure routes and security

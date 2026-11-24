@@ -1,10 +1,14 @@
 use crate::modifiers::security::MyceliumSecurity;
-use crate::rest::{audit, index, manager, role_scoped, service, staff};
+use crate::rest::{
+    audit, index, manager, notifications, role_scoped, service, staff,
+};
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user,
-    http_secret, profile, resource_audit_log, route, service as service_dtos,
-    tag, tenant, token, user, webhook,
+    http_secret, issuable_notification_service, notification_issuance_options,
+    profile, resource_audit_log, route, send_service_email_request,
+    service as service_dtos, service_notification_config, tag, tenant, token,
+    user, webhook,
 };
 use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
 use mycelium_base::dtos::{Children, Parent};
@@ -16,9 +20,11 @@ use utoipa::OpenApi;
 
 use audit::resource_audit_trail_endpoints as Audit__Resource_Trail;
 use index::heath_check_endpoints as Index__Heath_Check;
+use index::public_error_code_endpoints as Index__Public_Error_Code;
 use manager::account_endpoints as Managers__Accounts;
 use manager::guest_role_endpoints as Managers__Guest_Role;
 use manager::tenant_endpoints as Managers__Tenants;
+use notifications as Notifications__Email;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
 use role_scoped::account_manager::guest_role_endpoints as Account_Manager__Guest_Role;
 use role_scoped::beginners::account_endpoints as Beginners__Account;
@@ -48,6 +54,21 @@ use role_scoped::tenant_owner::tenant_endpoints as Tenant_Owner__Tenant;
 use role_scoped::users_manager::account_endpoints as Users_Manager__Account;
 use service::tools_endpoints as Service__Tools;
 use staff::account_endpoints as Staffs__Accounts;
+
+/// Notification Endpoints for Downstream Services
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Notifications | Email Endpoints",
+        description = "Endpoints a downstream service calls with a notification connection string to send emails. The connection string is a long-lived secret: never log it.",
+    ),
+    paths(
+        Notifications__Email::send_service_email_url,
+    ),
+    security(("ConnectionString" = []))
+)]
+struct NotificationsEmailApiDoc;
 
 /// Manager Endpoints for Account Management
 ///
@@ -267,6 +288,7 @@ struct BeginnersTenantApiDoc;
     ),
     paths(
         Beginners__Token::create_connection_string_url,
+        Beginners__Token::create_notification_connection_string_url,
         Beginners__Token::list_my_connection_strings_url,
     ),
     security(("Bearer" = [], "ConnectionString" = []))
@@ -442,6 +464,8 @@ struct SystemManagerErrorCodeApiDoc;
         System_Manager__Webhook::crate_webhook_url,
         System_Manager__Webhook::delete_webhook_url,
         System_Manager__Webhook::list_webhooks_url,
+        System_Manager__Webhook::list_webhook_executions_url,
+        System_Manager__Webhook::summarize_webhook_executions_url,
         System_Manager__Webhook::update_webhook_url,
     ),
     security(("Bearer" = [], "ConnectionString" = [])),
@@ -625,6 +649,10 @@ struct UsersManagerAccountApiDoc;
         //
         (path = "/_adm/audit", api = AuditResourceTrailApiDoc),
         //
+        // Downstream service notifications (notification connection string)
+        //
+        (path = "/_adm/notifications", api = NotificationsEmailApiDoc),
+        //
         // Beginner endpoints
         //
         (path = "/_adm/beginners/accounts", api = BeginnersAccountApiDoc),
@@ -688,6 +716,10 @@ struct UsersManagerAccountApiDoc;
         //
         Index__Heath_Check::health_url,
         Index__Heath_Check::now_url,
+        //
+        // PUBLIC ERROR CODES
+        //
+        Index__Public_Error_Code::list_public_error_codes_url,
     ),
     components(
         schemas(
@@ -723,9 +755,18 @@ struct UsersManagerAccountApiDoc;
             tenant::TenantMetaKey,
             tenant::TenantStatus,
             token::PublicConnectionStringInfo,
+            token::NotificationScope,
+            notification_issuance_options::NotificationIssuanceOptions,
+            issuable_notification_service::IssuableNotificationService,
+            service_notification_config::RecipientPolicy,
             user::User,
             webhook::WebHook,
             webhook::WebHookTrigger,
+            webhook::WebHookExecutionEvent,
+            webhook::WebHookExecutionSummary,
+            webhook::WebHookDispatchState,
+            webhook::WebHookPropagationSummary,
+            webhook::WebHookExecutionStatus,
 
             //
             // MANAGER
@@ -759,6 +800,13 @@ struct UsersManagerAccountApiDoc;
             Beginners__User::ResetPasswordBody,
             Beginners__User::CheckUserCredentialsBody,
             Beginners__Token::CreateTokenBody,
+            Beginners__Token::CreateNotificationTokenBody,
+
+            //
+            // NOTIFICATIONS
+            //
+            send_service_email_request::SendServiceEmailRequest,
+            Notifications__Email::SendServiceEmailResponse,
 
             //
             // GATEWAY MANAGER
@@ -794,10 +842,13 @@ struct UsersManagerAccountApiDoc;
             //
             System_Manager__Error_Code::CreateErrorCodeBody,
             System_Manager__Error_Code::ListErrorCodesParams,
+            Index__Public_Error_Code::ListPublicErrorCodesParams,
             System_Manager__Error_Code::UpdateErrorCodeMessageAndDetailsBody,
             System_Manager__Webhook::CreateWebHookBody,
             System_Manager__Webhook::UpdateWebHookBody,
             System_Manager__Webhook::ListWebHooksParams,
+            System_Manager__Webhook::ListWebHookExecutionsParams,
+            System_Manager__Webhook::SummarizeWebHookExecutionsParams,
 
             //
             // TENANT MANAGER

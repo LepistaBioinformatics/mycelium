@@ -1,6 +1,8 @@
-use crate::domain::dtos::tenant::{Tenant, TenantMetaKey};
+use crate::domain::dtos::tenant::{Tenant, TenantMetaKey, TenantTagFilter};
 
 use async_trait::async_trait;
+#[cfg(test)]
+use mockall::automock;
 use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::MappedErrors,
@@ -8,6 +10,7 @@ use mycelium_base::{
 use shaku::Interface;
 use uuid::Uuid;
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait TenantFetching: Interface + Send + Sync {
     /// Get tenant owned by me
@@ -44,7 +47,7 @@ pub trait TenantFetching: Interface + Send + Sync {
         name: Option<String>,
         owner: Option<Uuid>,
         metadata: Option<(TenantMetaKey, String)>,
-        tag: Option<(String, String)>,
+        tag: TenantTagFilter,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors>;

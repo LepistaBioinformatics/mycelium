@@ -2,7 +2,9 @@
 
 **Design:** `./design.md`
 **Spec:** `./spec.md`
-**Status:** Implemented — gates green, awaiting user validation (not committed)
+**Status:** Shipped — implemented, validated and merged. The 36 `[ ]` boxes below were never ticked
+after the merge; they are stale formatting, not outstanding work. Left unticked rather than
+back-filled, since no one re-verified them line by line.
 **Branch:** `feat/postgres-only-mode`
 
 ## Verification results (T12) — 2026-07-22

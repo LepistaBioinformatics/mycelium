@@ -37,6 +37,11 @@ impl HmacSecretSet {
         self.0.iter().find(|entry| entry.version == version)
     }
 
+    /// Every configured version, in declaration order.
+    pub fn versions(&self) -> impl Iterator<Item = u32> + '_ {
+        self.0.iter().map(|entry| entry.version)
+    }
+
     /// Validate the set against a declared primary version.
     ///
     /// Fails if the set is empty, if any two entries share a version, or

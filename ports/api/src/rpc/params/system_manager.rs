@@ -79,6 +79,28 @@ pub struct ListWebhooksParams {
     pub skip: Option<i32>,
 }
 
+#[derive(Default, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ListWebhookExecutionsParams {
+    #[schemars(description = "e.g. subscriptionAccount.created")]
+    pub trigger: Option<String>,
+    #[schemars(
+        description = "pending, processing, success, failed, exhausted, skipped or unknown"
+    )]
+    pub status: Option<String>,
+    pub page_size: Option<i32>,
+    pub skip: Option<i32>,
+}
+
+#[derive(Default, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SummarizeWebhookExecutionsParams {
+    #[schemars(
+        description = "Only events created at or after this RFC 3339 time, e.g. 2026-10-22T00:00:00Z"
+    )]
+    pub since: Option<String>,
+}
+
 #[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateWebhookParams {

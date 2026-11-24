@@ -1,4 +1,9 @@
-use lettre::{message::header::ContentType, Message as LettreMessage};
+use super::build_lettre_header::build_lettre_header;
+
+use lettre::{
+    message::{header::ContentType, MessageBuilder},
+    Message as LettreMessage,
+};
 use myc_core::domain::dtos::message::{FromEmail, Message};
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 
@@ -41,20 +46,125 @@ pub(crate) fn build_lettre_message(
             creation_err(format!("Invalid to email address: {e}"))
         })?;
 
-    LettreMessage::builder()
+    let builder = LettreMessage::builder()
         .from(from_addr)
         .to(to_addr)
         .subject(message.to_owned().subject)
-        .header(ContentType::TEXT_HTML)
+        .header(ContentType::TEXT_HTML);
+
+    append_custom_headers(builder, &message.headers)?
         .body(message.to_owned().body)
         .map_err(|e| {
             creation_err(format!("Could not build email message: {e}"))
         })
 }
 
+/// Append the `Message` extra headers, refusing any that is not allowed.
+fn append_custom_headers(
+    builder: MessageBuilder,
+    headers: &[(String, String)],
+) -> Result<MessageBuilder, MappedErrors> {
+    headers.iter().try_fold(builder, |builder, (name, value)| {
+        Ok(builder.raw_header(build_lettre_header(name, value)?))
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use myc_core::domain::dtos::email::Email;
+
+    fn message_with_headers(headers: Vec<(&str, &str)>) -> Message {
+        Message {
+            from: FromEmail::NamedEmail(
+                "\"Service 01 via Mycelium\" <noreply+service-01@example.com>"
+                    .to_string(),
+            ),
+            to: Email::from_string("user@example.com".to_string()).unwrap(),
+            cc: None,
+            subject: "Invoice ready".to_string(),
+            body: "<p>Hello</p>".to_string(),
+            headers: headers
+                .into_iter()
+                .map(|(name, value)| (name.to_string(), value.to_string()))
+                .collect(),
+        }
+    }
+
+    fn formatted(message: &Message) -> String {
+        let email = build_lettre_message(message).unwrap();
+        String::from_utf8(email.formatted()).unwrap()
+    }
+
+    #[test]
+    fn built_message_contains_the_custom_headers() {
+        let message = message_with_headers(vec![
+            ("X-Mycelium-Source-Service", "service-01"),
+            ("X-Mycelium-Message-Id", "0a1b2c3d"),
+        ]);
+
+        let formatted = formatted(&message);
+
+        assert!(formatted.contains("X-Mycelium-Source-Service: service-01\r\n"));
+        assert!(formatted.contains("X-Mycelium-Message-Id: 0a1b2c3d\r\n"));
+    }
+
+    #[test]
+    fn quoted_display_name_and_plus_address_reach_the_from_header() {
+        let formatted = formatted(&message_with_headers(vec![]));
+
+        assert!(
+            formatted.contains("<noreply+service-01@example.com>\r\n"),
+            "{formatted}"
+        );
+        assert!(formatted.contains("Service 01 via Mycelium"), "{formatted}");
+    }
+
+    #[test]
+    fn escaped_quote_in_the_display_name_does_not_add_a_sender() {
+        let mut message = message_with_headers(vec![]);
+        message.from = FromEmail::NamedEmail(
+            "\"A\\\" <attacker@example.com> via B\" <noreply@example.com>"
+                .to_string(),
+        );
+
+        let email = build_lettre_message(&message).unwrap();
+
+        assert_eq!(
+            email.envelope().from().map(ToString::to_string),
+            Some("noreply@example.com".to_string())
+        );
+    }
+
+    #[test]
+    fn message_without_headers_still_builds() {
+        let formatted = formatted(&message_with_headers(vec![]));
+
+        assert!(!formatted.contains("X-Mycelium-"));
+    }
+
+    #[test]
+    fn disallowed_header_name_is_an_error() {
+        let message =
+            message_with_headers(vec![("Bcc", "attacker@example.com")]);
+
+        assert!(build_lettre_message(&message).is_err());
+    }
+
+    #[test]
+    fn header_injection_through_name_or_value_is_an_error() {
+        let in_value = message_with_headers(vec![(
+            "X-Mycelium-Source-Service",
+            "service-01\r\nBcc: attacker@example.com",
+        )]);
+        let in_name = message_with_headers(vec![(
+            "X-Mycelium-A\r\nBcc: attacker@example.com\r\nX-Mycelium-B",
+            "value",
+        )]);
+
+        assert!(build_lettre_message(&in_value).is_err());
+        assert!(build_lettre_message(&in_name).is_err());
+    }
 
     #[test]
     fn wrong_version_number_error_gets_starttls_hint() {

@@ -330,9 +330,50 @@ CREATE TABLE webhook_execution (
     attempts INT DEFAULT 0,
     created TIMESTAMPTZ DEFAULT now(),
     attempted TIMESTAMPTZ DEFAULT NULL,
+    -- When a dispatcher took ownership of the row, not when it last tried to
+    -- deliver it. `attempted` drives the back-off, `claimed_at` drives crash
+    -- recovery; see migration 20260920_01.
+    claimed_at TIMESTAMPTZ DEFAULT NULL,
     status VARCHAR(100) DEFAULT NULL,
     propagations JSONB
 );
+
+-- Backs the multi-pod-safe webhook claim (status filter, attempt-tier back-off
+-- and the stale-claim branch on one scan). See migration 20260920_01.
+CREATE INDEX IF NOT EXISTS idx_webhook_execution_claim
+    ON webhook_execution (status, attempts, attempted);
+
+-- Webhook execution events as super users see them: dispatching state and
+-- delivery counts only. The payload, the propagation URLs and the response
+-- bodies stay in `webhook_execution` (see issue #113).
+CREATE OR REPLACE VIEW webhook_execution_event AS
+SELECT
+    we.id,
+    we.trigger,
+    we.payload_id,
+    COALESCE(we.status, 'unknown') AS status,
+    COALESCE(we.attempts, 0) AS attempts,
+    we.created,
+    we.attempted,
+    COALESCE(deliveries.total, 0) AS propagations_total,
+    COALESCE(deliveries.failed, 0) AS propagations_failed,
+    deliveries.last_status AS last_response_status
+FROM webhook_execution we
+LEFT JOIN LATERAL (
+    SELECT
+        count(*) AS total,
+        count(*) FILTER (
+            WHERE (p.value ->> 'status')::int NOT BETWEEN 200 AND 299
+        ) AS failed,
+        (array_agg((p.value ->> 'status')::int ORDER BY p.ordinality DESC))[1]
+            AS last_status
+    FROM jsonb_array_elements(
+        CASE
+            WHEN jsonb_typeof(we.propagations) = 'array' THEN we.propagations
+            ELSE '[]'::jsonb
+        END
+    ) WITH ORDINALITY AS p(value, ordinality)
+) deliveries ON true;
 
 -- Token table
 CREATE TABLE token (
@@ -591,7 +632,8 @@ CREATE INDEX IF NOT EXISTS idx_telegram_audit_created_at
 CREATE TABLE IF NOT EXISTS resource_audit_log (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     resource_type TEXT        NOT NULL CHECK (resource_type IN
-                       ('account', 'account_meta', 'user', 'tenant', 'tenant_meta', 'guest_role', 'webhook')),
+                       ('account', 'account_meta', 'user', 'tenant', 'tenant_meta', 'guest_role', 'webhook',
+                        'federation_resolution', 'federation_translation')),
     resource_id   UUID        NOT NULL,
     tenant_id     UUID,
     event         TEXT        NOT NULL CHECK (event IN ('created', 'updated', 'deleted')),
@@ -613,6 +655,183 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_resource_audit_log_immutable
 BEFORE UPDATE OR DELETE ON resource_audit_log
 FOR EACH ROW EXECUTE FUNCTION prevent_resource_audit_log_mutation();
+
+-- Trace and hourly quota of the downstream service email notifications: one
+-- row per recipient, written in the transaction that enqueues the message
+-- (`id` = `message_queue.id` = `X-Mycelium-Message-Id`). No foreign keys: the
+-- trace outlives both the connection string and the delivered message.
+-- Template variables are never stored. See migration 20261120_01.
+CREATE TABLE IF NOT EXISTS notification_dispatch (
+    id                   UUID         PRIMARY KEY,
+    sender_tag           VARCHAR(32)  NOT NULL,
+    channel              VARCHAR(16)  NOT NULL DEFAULT 'email',
+    connection_string_id INT          NOT NULL,
+    account_id           UUID         NOT NULL,
+    tenant_id            UUID,
+    recipient            VARCHAR(320) NOT NULL,
+    template             VARCHAR(64)  NOT NULL,
+    locale               VARCHAR(16)  NOT NULL,
+    created_at           TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS notification_dispatch_tag_created_idx
+    ON notification_dispatch (sender_tag, created_at);
+
+-- Instance federation trust (F1): peers declared by the operator, their public
+-- keys, and the jti of accepted signed peer requests (replay guard shared by
+-- every pod). Status is validated by the application. See migration
+-- 20261121_01.
+CREATE TABLE IF NOT EXISTS federation_peer (
+    id               UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id      UUID          NOT NULL UNIQUE,
+    base_url         VARCHAR(2048) NOT NULL,
+    display_name     VARCHAR(255),
+    status           VARCHAR(32)   NOT NULL DEFAULT 'declared',
+    consume_kinds    JSONB         NOT NULL DEFAULT '[]'::JSONB,
+    serve_kinds      JSONB         NOT NULL DEFAULT '[]'::JSONB,
+    negotiated_kinds JSONB         NOT NULL DEFAULT '[]'::JSONB,
+    policy           JSONB         NOT NULL DEFAULT '{}'::JSONB,
+    last_contact_at  TIMESTAMPTZ,
+    failure_count    INT           NOT NULL DEFAULT 0,
+    created          TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    created_by       JSONB,
+    updated          TIMESTAMPTZ,
+    updated_by       JSONB
+);
+
+CREATE TABLE IF NOT EXISTS federation_peer_key (
+    peer_id    UUID         NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    kid        VARCHAR(16)  NOT NULL,
+    alg        VARCHAR(16)  NOT NULL,
+    public_key VARCHAR(64)  NOT NULL,
+    fetched_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ,
+    PRIMARY KEY (peer_id, kid)
+);
+
+CREATE TABLE IF NOT EXISTS federation_request_nonce (
+    jti        VARCHAR(128) PRIMARY KEY,
+    peer_id    UUID         NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ  NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS federation_request_nonce_expires_idx
+    ON federation_request_nonce (expires_at);
+
+-- Instance federation identity links (F2): the link between a local user and
+-- the same person on a peer, the consumer's single-use link initiations and
+-- the issuer's pending consents. See migration 20261122_01.
+CREATE TABLE IF NOT EXISTS federation_identity_link (
+    id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    local_user_id     UUID         NOT NULL REFERENCES public.user (id) ON DELETE CASCADE,
+    local_email       VARCHAR(140) NOT NULL,
+    peer_id           UUID         NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    peer_subject_ref  VARCHAR(64),
+    local_subject_ref VARCHAR(64)  NOT NULL UNIQUE,
+    status            VARCHAR(16)  NOT NULL DEFAULT 'pending',
+    created           TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    established_at    TIMESTAMPTZ,
+    revoked_at        TIMESTAMPTZ,
+    revoked_by        JSONB
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS federation_identity_link_live_idx
+    ON federation_identity_link (local_user_id, peer_id)
+    WHERE status <> 'revoked';
+
+CREATE TABLE IF NOT EXISTS federation_link_request (
+    id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    local_user_id UUID        NOT NULL REFERENCES public.user (id) ON DELETE CASCADE,
+    peer_id       UUID        NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    secret_hash   VARCHAR(64) NOT NULL,
+    created       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at    TIMESTAMPTZ NOT NULL,
+    redirected_at TIMESTAMPTZ,
+    consumed_at   TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS federation_link_request_expires_idx
+    ON federation_link_request (expires_at);
+
+CREATE TABLE IF NOT EXISTS federation_link_consent (
+    id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+    peer_id         UUID          NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    peer_request_id UUID          NOT NULL,
+    peer_email      VARCHAR(140)  NOT NULL,
+    return_url      VARCHAR(2048) NOT NULL,
+    local_user_id   UUID          REFERENCES public.user (id) ON DELETE CASCADE,
+    created         TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    expires_at      TIMESTAMPTZ   NOT NULL,
+    consumed_at     TIMESTAMPTZ,
+    UNIQUE (peer_id, peer_request_id)
+);
+
+CREATE INDEX IF NOT EXISTS federation_link_consent_expires_idx
+    ON federation_link_consent (expires_at);
+
+CREATE TABLE IF NOT EXISTS federation_assertion_cache (
+    link_id     UUID        NOT NULL REFERENCES federation_identity_link (id) ON DELETE CASCADE,
+    peer_id     UUID        NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    kind        VARCHAR(64) NOT NULL,
+    jws         TEXT        NOT NULL,
+    payload     JSONB       NOT NULL,
+    iat         TIMESTAMPTZ NOT NULL,
+    exp         TIMESTAMPTZ NOT NULL,
+    received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (link_id, kind)
+);
+
+CREATE INDEX IF NOT EXISTS federation_assertion_cache_exp_idx
+    ON federation_assertion_cache (exp);
+
+CREATE TABLE IF NOT EXISTS federation_namespace_claim (
+    foreign_id    UUID        PRIMARY KEY,
+    peer_id       UUID        NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    kind          VARCHAR(16) NOT NULL,
+    first_seen_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS federation_tombstone (
+    link_id     UUID        PRIMARY KEY REFERENCES federation_identity_link (id) ON DELETE CASCADE,
+    peer_id     UUID        NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    reason      VARCHAR(32) NOT NULL,
+    issued_at   TIMESTAMPTZ NOT NULL,
+    received_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS federation_outbox (
+    id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    peer_id         UUID        NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    subject_ref     VARCHAR(64) NOT NULL,
+    reason          VARCHAR(32) NOT NULL,
+    issued_at       TIMESTAMPTZ NOT NULL,
+    attempts        INTEGER     NOT NULL DEFAULT 0,
+    next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    status          VARCHAR(16) NOT NULL DEFAULT 'pending',
+    last_error      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS federation_outbox_due_idx
+    ON federation_outbox (status, next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS federation_grant_translation (
+    id                  UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    peer_id             UUID         NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    issuer_tenant_id    UUID         NOT NULL,
+    issuer_role         VARCHAR(140) NOT NULL,
+    issuer_perm         INTEGER      NOT NULL,
+    local_account_id    UUID         NOT NULL REFERENCES account (id) ON DELETE CASCADE,
+    local_guest_role_id UUID         NOT NULL REFERENCES guest_role (id) ON DELETE CASCADE,
+    local_perm          INTEGER      NOT NULL,
+    enabled             BOOLEAN      NOT NULL DEFAULT true,
+    created             TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    created_by          JSONB,
+    updated             TIMESTAMPTZ,
+    updated_by          JSONB
+);
+
+CREATE INDEX IF NOT EXISTS federation_grant_translation_peer_idx
+    ON federation_grant_translation (peer_id) WHERE enabled;
 
 --------------------------------------------------------------------------------
 -- PERMISSIONS

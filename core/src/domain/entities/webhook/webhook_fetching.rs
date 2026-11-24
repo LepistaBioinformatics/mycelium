@@ -1,5 +1,6 @@
 use crate::domain::dtos::webhook::{
-    WebHook, WebHookExecutionStatus, WebHookPayloadArtifact, WebHookTrigger,
+    WebHook, WebHookExecutionStatus, WebHookPayloadArtifact,
+    WebHookRetryPolicy, WebHookTrigger,
 };
 
 use async_trait::async_trait;
@@ -34,10 +35,19 @@ pub trait WebHookFetching: Interface + Send + Sync {
         trigger: WebHookTrigger,
     ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors>;
 
+    /// Claim a batch of execution events that are due for dispatch
+    ///
+    /// "Due" is not the same as "matching `status`": an event that failed
+    /// recently is still serving its back-off and must not be handed out
+    /// again, which is what `retry_policy` decides. Implementations that back
+    /// a multi-pod deployment must also make the batch exclusive -- two
+    /// replicas calling this concurrently may never receive the same event.
+    ///
     async fn fetch_execution_event(
         &self,
         max_events: u32,
         max_attempts: u32,
         status: Option<Vec<WebHookExecutionStatus>>,
+        retry_policy: WebHookRetryPolicy,
     ) -> Result<FetchManyResponseKind<WebHookPayloadArtifact>, MappedErrors>;
 }

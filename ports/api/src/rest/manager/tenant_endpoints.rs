@@ -6,7 +6,7 @@ use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        dtos::tenant::{Tenant, TenantMetaKey},
+        dtos::tenant::{Tenant, TenantMetaKey, TenantTagFilter},
         entities::TenantOwnerConnection,
     },
     use_cases::super_users::managers::{
@@ -70,10 +70,17 @@ pub struct ListTenantParams {
     /// Filter tenants by metadata key
     metadata: Option<String>,
 
-    /// Filter tenants by tag
+    /// Filter tenants by the value of one of their tags
     ///
-    /// Example: `key=value`
+    /// Example: `rolling-circle.environment`
     tag: Option<String>,
+
+    /// Filter tenants by a key/value pair in the meta of one of their tags
+    ///
+    /// Combined with `tag`, both criteria must match the same tag.
+    ///
+    /// Example: `environment=production`
+    tag_meta: Option<String>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -177,11 +184,12 @@ pub async fn list_tenant_url(
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let tag = match query.tag.as_ref() {
-        Some(tag) => match tag.split_once('=') {
+    let tag_meta = match query.tag_meta.as_ref() {
+        Some(tag_meta) => match tag_meta.split_once('=') {
             Some((key, value)) => Some((key.to_string(), value.to_string())),
             None => {
-                return HttpResponse::BadRequest().body("Invalid tag format")
+                return HttpResponse::BadRequest()
+                    .body("Invalid tag meta format")
             }
         },
         None => None,
@@ -212,7 +220,10 @@ pub async fn list_tenant_url(
         query.name.to_owned(),
         query.owner.to_owned(),
         metadata.to_owned(),
-        tag.to_owned(),
+        TenantTagFilter {
+            value: query.tag.to_owned(),
+            meta: tag_meta,
+        },
         page.page_size.to_owned(),
         page.skip.to_owned(),
         Box::new(&*app_module.resolve_ref()),

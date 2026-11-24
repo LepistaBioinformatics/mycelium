@@ -47,8 +47,12 @@ pub const BEGINNERS_PROFILE_GET: &str = "beginners.profile.get";
 pub const BEGINNERS_TENANTS_GET_PUBLIC_INFO: &str =
     "beginners.tenants.getPublicInfo";
 pub const BEGINNERS_TOKENS_CREATE: &str = "beginners.tokens.create";
+pub const BEGINNERS_TOKENS_CREATE_NOTIFICATION: &str =
+    "beginners.tokens.createNotification";
 pub const BEGINNERS_TOKENS_DELETE: &str = "beginners.tokens.delete";
 pub const BEGINNERS_TOKENS_LIST: &str = "beginners.tokens.list";
+pub const BEGINNERS_TOKENS_LIST_NOTIFICATION_SERVICES: &str =
+    "beginners.tokens.listNotificationServices";
 pub const BEGINNERS_TOKENS_REVOKE: &str = "beginners.tokens.revoke";
 pub const BEGINNERS_USERS: &str = "beginners.users.create";
 pub const BEGINNERS_USERS_CHECK_TOKEN_AND_ACTIVATE_USER: &str =
@@ -99,6 +103,10 @@ pub const SYSTEM_MANAGER_WEBHOOKS_UPDATE: &str =
     "systemManager.webhooks.update";
 pub const SYSTEM_MANAGER_WEBHOOKS_DELETE: &str =
     "systemManager.webhooks.delete";
+pub const SYSTEM_MANAGER_WEBHOOKS_LIST_EXECUTIONS: &str =
+    "systemManager.webhooks.listExecutions";
+pub const SYSTEM_MANAGER_WEBHOOKS_SUMMARIZE_EXECUTIONS: &str =
+    "systemManager.webhooks.summarizeExecutions";
 
 // Subscriptions manager
 pub const SUBSCRIPTIONS_MANAGER_ACCOUNTS_CREATE_SUBSCRIPTION_ACCOUNT: &str =
@@ -186,3 +194,49 @@ pub const STAFF_ACCOUNTS_UPGRADE_PRIVILEGES: &str =
     "staff.accounts.upgradePrivileges";
 pub const STAFF_ACCOUNTS_DOWNGRADE_PRIVILEGES: &str =
     "staff.accounts.downgradePrivileges";
+
+// Federation (staff only; `federation` feature)
+#[cfg(feature = "federation")]
+pub const FEDERATION_PEERS_LIST: &str = "federation.peers.list";
+#[cfg(feature = "federation")]
+pub const FEDERATION_PEERS_QUARANTINE: &str = "federation.peers.quarantine";
+#[cfg(feature = "federation")]
+pub const FEDERATION_PEERS_RELEASE: &str = "federation.peers.release";
+#[cfg(feature = "federation")]
+pub const FEDERATION_PEERS_ROLES: &str = "federation.peers.roles";
+#[cfg(feature = "federation")]
+pub const FEDERATION_SET_ENABLED: &str = "federation.setEnabled";
+#[cfg(feature = "federation")]
+pub const FEDERATION_LINKS_LIST: &str = "federation.links.list";
+#[cfg(feature = "federation")]
+pub const FEDERATION_LINKS_REVOKE: &str = "federation.links.revoke";
+#[cfg(feature = "federation")]
+pub const FEDERATION_ASSERTIONS_LIST: &str = "federation.assertions.list";
+#[cfg(feature = "federation")]
+pub const FEDERATION_TRANSLATIONS_LIST: &str = "federation.translations.list";
+#[cfg(feature = "federation")]
+pub const FEDERATION_TRANSLATIONS_CREATE: &str =
+    "federation.translations.create";
+#[cfg(feature = "federation")]
+pub const FEDERATION_TRANSLATIONS_SET_ENABLED: &str =
+    "federation.translations.setEnabled";
+#[cfg(feature = "federation")]
+pub const FEDERATION_TRANSLATIONS_DELETE: &str =
+    "federation.translations.delete";
+
+// Federation, the user's own links (`federation` feature)
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_LIST_PEERS: &str =
+    "beginners.federation.listPeers";
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_START_LINK: &str =
+    "beginners.federation.startLink";
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_LIST_LINKS: &str =
+    "beginners.federation.listLinks";
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_REVOKE_LINK: &str =
+    "beginners.federation.revokeLink";
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_RESOLVE_GRANTS: &str =
+    "beginners.federation.resolveGrants";

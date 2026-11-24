@@ -60,6 +60,21 @@ wired into either workflow's dropdown today — use `custom_version` (see below)
 
 **Example progression**: `8.3.0-beta.1` → `8.3.0-beta.2` → `8.3.0-rc.1` → `8.3.0-rc.2`
 
+**The stages are one-way.** Once a line is at `-rc.N` you cannot dispatch `beta` on it —
+cargo-release refuses to walk a pre-release backwards, and reports it as:
+
+```
+error: unsupported release level beta, only major, minor, and patch are supported
+```
+
+That message is misleading: the `beta` level exists and works fine, it is the `rc` → `beta`
+transition that is rejected (`src/ops/version.rs`, `increment_beta`). From `-rc.N` the only
+relative moves are `rc` (next RC) or promotion to stable; starting a *new* line at beta means
+going through stable first, or naming the version explicitly with `custom_version`.
+
+`release-prerelease.yml`'s pre-flight step catches this before it spends six minutes building
+cargo-release, and says which of the two it is.
+
 ### Promoting to stable
 
 Dispatch `release-stable.yml` from `main` with `release_type: patch|minor|major` — cargo-release's
@@ -69,6 +84,37 @@ always bumps from `main`'s current version, so merge the release branch into `ma
 dispatch with the level matching what the pre-release cycle was for (a `9.0.0-rc.N` line promotes
 via `major` from the last stable tag once `main` is on the rc's commit — see the 9.0.0 walkthrough
 below for the concrete case).
+
+### Back-merge `main` into `develop` (mandatory)
+
+`cargo release` bumps the version **on the branch it runs from**. A stable release therefore
+leaves the `chore: Release version X.Y.Z` commit on `main` only, while `develop` still declares
+the last pre-release version. `release-prerelease.yml` runs from `develop`, so until that commit
+is brought back, every later bump is computed from a stale base:
+
+| `main` | `develop` | dispatch | result |
+|---|---|---|---|
+| `9.0.0` | `9.0.0-rc.13` | `beta` | hard error (rc → beta, see above) |
+| `9.0.0` | `9.0.0-rc.13` | `rc` | **silently cuts `9.0.0-rc.14`** — a version *behind* the published `9.0.0` |
+
+The second row is the dangerous one: nothing fails, and a version lower than the current stable
+reaches crates.io and GHCR.
+
+**So, immediately after every stable release**, open a PR bringing `main` back into `develop`:
+
+```bash
+git checkout develop && git pull
+git checkout -b chore/backmerge-X.Y.Z-into-develop
+git merge origin/main
+# resolve nothing in the normal case -- only main touched the version lines
+git push -u origin chore/backmerge-X.Y.Z-into-develop
+gh pr create --base develop
+```
+
+`release-prerelease.yml`'s pre-flight compares `develop`'s version against `main`'s and refuses to
+run while `develop` is behind, so a forgotten back-merge now fails loudly at second zero instead of
+producing a bad version. The comparison is by version, not by commit ancestry, so it is satisfied
+whether the back-merge PR is merged or squashed.
 
 ## Publish Failures & Retry
 
@@ -235,6 +281,7 @@ Use this checklist before dispatching a stable release:
 - [ ] Team review is complete (for major/minor releases)
 - [ ] Local dry run reviewed: `cargo release <level>`
 - [ ] Workflow `dry_run: true` dispatch reviewed
+- [ ] After a stable release: `main` back-merged into `develop` (see above)
 
 ## Release Configuration
 

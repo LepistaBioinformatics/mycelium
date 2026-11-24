@@ -7,8 +7,12 @@ mod fetch_connection_string_from_request;
 mod fetch_profile_from_request_connection_string;
 mod fetch_profile_from_request_token;
 mod get_email_or_provider_from_request;
+mod inject_signed_profile;
+mod log_served_request;
 mod parse_issuer_from_request;
 mod recovery_profile_from_storage_engines;
+mod resolve_issuer_from_provider;
+mod staff_bootstrap_gate;
 
 pub(crate) use body_idp::*;
 pub(crate) use check_credentials_with_multi_identity_provider::*;
@@ -18,7 +22,11 @@ pub(crate) use fetch_and_inject_profile_from_token_to_forward::*;
 pub(crate) use fetch_connection_string_from_request::*;
 pub(crate) use fetch_profile_from_request_connection_string::*;
 pub(crate) use fetch_profile_from_request_token::*;
+pub(crate) use inject_signed_profile::*;
+pub(crate) use log_served_request::*;
 pub(crate) use parse_issuer_from_request::*;
 pub(crate) use recovery_profile_from_storage_engines::*;
+pub(crate) use resolve_issuer_from_provider::*;
 
 use get_email_or_provider_from_request::*;
+pub(crate) use staff_bootstrap_gate::*;

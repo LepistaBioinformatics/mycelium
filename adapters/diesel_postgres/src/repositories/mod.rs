@@ -5,11 +5,21 @@ mod account_tag;
 mod config;
 mod encryption_key;
 mod error_code;
+mod federation_assertion;
+mod federation_link;
+mod federation_link_request;
+mod federation_namespace;
+mod federation_peer;
+mod federation_request_nonce;
+mod federation_revocation;
+mod federation_translation;
 mod guest_role;
 mod guest_user;
+mod hosted_login;
 mod instance_settings;
 mod licensed_resources;
 mod message;
+mod notification_dispatch;
 mod optional_written_by_parser;
 mod profile;
 mod resource_audit_log;
@@ -23,8 +33,17 @@ use account::*;
 use account_tag::*;
 use encryption_key::*;
 use error_code::*;
+use federation_assertion::*;
+use federation_link::*;
+use federation_link_request::*;
+use federation_namespace::*;
+use federation_peer::*;
+use federation_request_nonce::*;
+use federation_revocation::*;
+use federation_translation::*;
 use guest_role::*;
 use guest_user::*;
+use hosted_login::*;
 use instance_settings::*;
 use licensed_resources::*;
 pub use message::*;
@@ -37,6 +56,7 @@ use user::*;
 use webhook::*;
 
 pub use config::*;
+pub use notification_dispatch::*;
 pub use resource_audit_log::*;
 
 module! {
@@ -61,6 +81,23 @@ module! {
             ErrorCodeFetchingSqlDbRepository,
             ErrorCodeRegistrationSqlDbRepository,
             ErrorCodeUpdatingSqlDbRepository,
+            AssertionStoreReadSqlDbRepository,
+            AssertionStoreWriteSqlDbRepository,
+            IdentityLinkReadSqlDbRepository,
+            IdentityLinkWriteSqlDbRepository,
+            LinkRequestRegistrationSqlDbRepository,
+            LinkConsentRegistrationSqlDbRepository,
+            FederationPeerReadSqlDbRepository,
+            FederationPeerWriteSqlDbRepository,
+            FederationRequestNonceSqlDbRepository,
+            LocalNamespaceProbeSqlDbRepository,
+            NamespaceClaimRegistrationSqlDbRepository,
+            GrantTranslationReadSqlDbRepository,
+            GrantTranslationWriteSqlDbRepository,
+            RevocationOutboxSqlDbRepository,
+            RevocationSubjectsFetchingSqlDbRepository,
+            SubjectStandingFetchingSqlDbRepository,
+            TombstoneRegistrationSqlDbRepository,
             GuestRoleDeletionSqlDbRepository,
             GuestRoleFetchingSqlDbRepository,
             GuestRoleRegistrationSqlDbRepository,
@@ -70,12 +107,18 @@ module! {
             GuestUserOnAccountUpdatingSqlDbRepository,
             GuestUserOnAccountFetchingSqlDbRepository,
             GuestUserRegistrationSqlDbRepository,
+            HostedLoginSessionFetchingSqlDbRepository,
+            HostedLoginSessionInvalidationSqlDbRepository,
+            HostedLoginSessionRegistrationSqlDbRepository,
+            HostedLoginSessionUpdatingSqlDbRepository,
             InstanceSettingsFetchingSqlDbRepository,
             InstanceSettingsRegistrationSqlDbRepository,
+            InstanceSettingsUpdatingSqlDbRepository,
             ProfileFetchingSqlDbRepository,
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,
             LocalMessageWriteSqlDbRepository,
+            NotificationDispatchRegistrationSqlDbRepository,
             ResourceAuditLogFetchingSqlDbRepository,
             ResourceAuditLogRegistrationSqlDbRepository,
             TenantDeletionSqlDbRepository,
@@ -94,6 +137,7 @@ module! {
             UserRegistrationSqlDbRepository,
             UserUpdatingSqlDbRepository,
             WebHookDeletionSqlDbRepository,
+            WebHookExecutionFetchingSqlDbRepository,
             WebHookFetchingSqlDbRepository,
             WebHookRegistrationSqlDbRepository,
             WebHookUpdatingSqlDbRepository,

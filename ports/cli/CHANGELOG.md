@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0-rc.1] - 2026-11-23
+
+### 🚀 Features
+
+- *(cli)* Print the federation self-description
+- *(cli)* Declare federation peers
+- *(federation)* Publish the role catalog
+- *(cli)* Accept a peer's assertions when declaring it
+
+### 🐛 Bug Fixes
+
+- *(cli)* Supply the audit channel when federation describe builds the SQL module
+- *(cli)* Supply the audit channel when federation commands build the SQL module
+
+## [9.0.1-beta.5] - 2026-10-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.5
+
+## [9.0.1-beta.4] - 2026-10-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.4
+
+## [9.0.1-beta.3] - 2026-09-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
+
+## [9.0.1-beta.2] - 2026-09-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.2
+
+## [9.0.1-beta.1] - 2026-08-28
+
+### ⚙️ Miscellaneous Tasks
+
+- Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
+
+## [9.0.0] - 2026-08-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0
+
 ## [9.0.0-rc.13] - 2026-07-29
 
 ### ⚙️ Miscellaneous Tasks
@@ -92,13 +143,13 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
 - Release version 8.3.1-rc.4
 
 ## [8.3.1-rc.3] - 2026-04-27
 
 ### ⚙️ Miscellaneous Tasks
 
-- Merge develop — release automation, crates.io publish, GHCR Docker workflow
 - Release version 8.3.1-rc.3
 
 ## [8.3.1-rc.2] - 2026-04-26

@@ -1,7 +1,10 @@
-use crate::domain::{
-    actors::SystemActor,
-    dtos::{error_code::ErrorCode, profile::Profile},
-    entities::ErrorCodeRegistration,
+use crate::{
+    domain::{
+        actors::SystemActor,
+        dtos::{error_code::ErrorCode, profile::Profile},
+        entities::ErrorCodeRegistration,
+    },
+    use_cases::shared::error_codes::refuse_native_error_code_prefix,
 };
 
 use mycelium_base::{
@@ -10,6 +13,10 @@ use mycelium_base::{
 };
 
 /// Register a new error code
+///
+/// Custom codes cannot use a native prefix: the number is assigned on
+/// registration, so a custom code under a native prefix could collide with a
+/// native `(prefix, code)`.
 ///
 /// This action should be only performed by manager or staff users.
 #[tracing::instrument(
@@ -37,6 +44,8 @@ pub async fn register_error_code(
     // ? -----------------------------------------------------------------------
     // ? Build error code object
     // ? -----------------------------------------------------------------------
+
+    refuse_native_error_code_prefix(&prefix)?;
 
     let mut error_code = match is_internal {
         true => ErrorCode::new_internal_error(prefix, 0, message, false)?,
@@ -161,6 +170,24 @@ mod tests {
         assert_eq!(error_code.message, "Test error.");
         assert_eq!(error_code.details, details);
         assert_eq!(error_code.is_internal, true);
+    }
+
+    #[tokio::test]
+    async fn refuses_registering_under_native_prefix() {
+        let error = register_error_code(
+            super::super::test_profiles::system_manager_profile(),
+            "MYC".to_string(),
+            "Test error.".to_string(),
+            None,
+            false,
+            Box::new(&MockErrorCodeRegistrationRepo {
+                generate_error: false,
+            }),
+        )
+        .await
+        .expect_err("a native prefix must be refused");
+
+        assert!(error.expected());
     }
 
     #[tokio::test]

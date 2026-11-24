@@ -24,6 +24,123 @@ pub const MYCELIUM_HEADER_PREFIX: &str = "x-mycelium-";
 ///
 pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 
+/// Default profile signature key
+///
+/// Carries the compact JWS (EdDSA) issued by the gateway over the exact value
+/// of `DEFAULT_PROFILE_KEY`. Signed with the Ed25519 key derived from the
+/// primary connection-string HMAC secret; downstream SDKs verify it when
+/// `MYCELIUM_JWKS_URL` is set.
+///
+pub const DEFAULT_PROFILE_SIGNATURE_KEY: &str = "x-mycelium-profile-signature";
+
+/// Signed federation peer request
+///
+/// Carries the compact JWS (EdDSA, `typ: mycelium-peer-request+jwt`) a peer
+/// instance signs with its federation key over the request (D-9).
+///
+pub const PEER_REQUEST_SIGNATURE_KEY: &str = "x-mycelium-peer-signature";
+
+/// Where an instance serves its federation self-description (FED-03)
+pub const INSTANCE_SELF_DESCRIPTION_PATH: &str =
+    "/.well-known/mycelium-instance";
+
+/// Where an instance serves its role catalog (D-10, FED-55)
+pub const ROLE_CATALOG_PATH: &str = "/.well-known/mycelium-instance/roles";
+
+/// Where a peer asks this instance to handshake again (FED-08)
+pub const FEDERATION_HANDSHAKE_PATH: &str = "/federation/handshake";
+
+/// Consumer page a link initiation URL opens (FED-42)
+pub const FEDERATION_LINK_START_PATH: &str = "/federation/link/start";
+
+/// Consumer page the browser returns to once a link is settled
+pub const FEDERATION_LINK_DONE_PATH: &str = "/federation/link/done";
+
+/// Issuer page a consumer redirects a linking user to, with the signed state
+pub const FEDERATION_LINK_AUTHORIZE_PATH: &str = "/federation/link/authorize";
+
+/// Issuer page the hosted login returns to during linking
+pub const FEDERATION_LINK_CALLBACK_PATH: &str = "/federation/link/callback";
+
+/// Issuer form the user submits to confirm a link (FED-46)
+pub const FEDERATION_LINK_APPROVE_PATH: &str = "/federation/link/approve";
+
+/// Where an issuer tells the consumer a link was confirmed (signed request)
+pub const FEDERATION_LINK_CONFIRM_PATH: &str = "/federation/link/confirm";
+
+/// Where a peer pushes a tombstone: grants or a link revoked on its side
+/// (FED-22, signed request)
+pub const FEDERATION_TOMBSTONE_PATH: &str = "/federation/tombstone";
+
+/// Where a peer asks this instance for a linked subject's grants (FED-11)
+pub const FEDERATION_RESOLVE_PATH: &str = "/federation/resolve";
+
+/// Where a peer asks this instance for its guest-role vocabulary (FED-40)
+pub const FEDERATION_VOCABULARY_PATH: &str = "/federation/vocabulary";
+
+/// Upper bound of a peer response body read by the federation client
+pub const PEER_RESPONSE_MAX_BYTES: usize = 64 * 1024;
+
+/// Where the gateway is; enables verification in `GatewayProfileData` (same
+/// variable as the SDKs). Either the gateway address, to which
+/// `PROFILE_JWKS_PATH` is appended, or the complete JWKS endpoint. `https://`
+/// only, unless `PROFILE_JWKS_ALLOW_INSECURE_HTTP_ENV` is `true` (development)
+pub const PROFILE_JWKS_URL_ENV: &str = "MYCELIUM_JWKS_URL";
+
+/// Development-only switch that accepts an `http://` JWKS URL
+pub const PROFILE_JWKS_ALLOW_INSECURE_HTTP_ENV: &str =
+    "MYCELIUM_JWKS_ALLOW_INSECURE_HTTP";
+
+/// Path where the gateway publishes the profile JWKS
+pub const PROFILE_JWKS_PATH: &str = "/.well-known/mycelium-profile-jwks.json";
+
+/// Upper bound of one JWKS request
+pub const PROFILE_JWKS_FETCH_TIMEOUT_SECONDS: u64 = 5;
+
+/// Largest accepted JWKS response body, in bytes
+pub const PROFILE_JWKS_MAX_BYTES: usize = 64 * 1024;
+
+/// Minimum interval between JWKS requests (unknown `kid`, failed refresh)
+pub const PROFILE_JWKS_REFETCH_COOLDOWN_SECONDS: u64 = 30;
+
+/// Shorter retry interval while no key set was ever downloaded (first use)
+pub const PROFILE_JWKS_EMPTY_RETRY_SECONDS: u64 = 5;
+
+/// Cache lifetime when the response carries no usable `max-age` (12 h)
+pub const PROFILE_JWKS_DEFAULT_MAX_AGE_SECONDS: u64 = 43_200;
+
+/// Bounds applied to the `max-age` announced by the gateway
+pub const PROFILE_JWKS_MIN_MAX_AGE_SECONDS: u64 = 60;
+pub const PROFILE_JWKS_MAX_MAX_AGE_SECONDS: u64 = 86_400;
+
+/// Optional symmetric `iat` tolerance, in seconds (default 60)
+pub const PROFILE_SIGNATURE_TOLERANCE_ENV: &str =
+    "MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS";
+
+/// Expected `aud`, required whenever verification is enabled
+pub const PROFILE_SIGNATURE_AUDIENCE_ENV: &str =
+    "MYC_PROFILE_SIGNATURE_AUDIENCE";
+
+/// Default symmetric, inclusive `iat` tolerance, in seconds
+pub const DEFAULT_PROFILE_SIGNATURE_TOLERANCE_SECONDS: u64 = 60;
+
+/// Largest accepted `iat` tolerance, in seconds (5 minutes)
+///
+/// The tolerance is the replay window of a captured signed profile, so a
+/// mistyped value must not silently widen it to hours or days.
+///
+pub const MAX_PROFILE_SIGNATURE_TOLERANCE_SECONDS: u64 = 300;
+
+/// How long an expired key set stays trusted while refreshes fail (1 day)
+///
+/// Bounds how long a key the gateway retired keeps verifying when the
+/// downstream cannot reach the JWKS; after it, requests fail closed.
+///
+pub const PROFILE_JWKS_MAX_STALE_SECONDS: u64 = 86_400;
+
+/// Largest accepted `x-mycelium-profile-signature` value, in bytes
+pub const MAX_PROFILE_SIGNATURE_BYTES: usize = 4096;
+
 /// Default email key
 ///
 /// This is the default key used to store the email in the request headers and

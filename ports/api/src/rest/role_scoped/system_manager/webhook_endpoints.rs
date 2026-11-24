@@ -6,11 +6,15 @@ use myc_core::{
     domain::dtos::{
         http::HttpMethod,
         http_secret::HttpSecret,
-        webhook::{deserialize_write_method, WebHook, WebHookTrigger},
+        webhook::{
+            deserialize_write_method, WebHook, WebHookExecutionEvent,
+            WebHookExecutionStatus, WebHookExecutionSummary, WebHookTrigger,
+        },
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::system_manager::webhook::{
-        delete_webhook, list_webhooks, register_webhook, update_webhook,
+        delete_webhook, list_webhook_execution_events, list_webhooks,
+        register_webhook, summarize_webhook_execution_events, update_webhook,
     },
 };
 use myc_http_tools::{
@@ -33,6 +37,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(crate_webhook_url)
         .service(list_webhooks_url)
+        .service(list_webhook_executions_url)
+        .service(summarize_webhook_executions_url)
         .service(update_webhook_url)
         .service(delete_webhook_url);
 }
@@ -67,6 +73,24 @@ pub struct UpdateWebHookBody {
 pub struct ListWebHooksParams {
     name: Option<String>,
     trigger: Option<WebHookTrigger>,
+}
+
+#[derive(Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct ListWebHookExecutionsParams {
+    /// Only events of this trigger
+    trigger: Option<WebHookTrigger>,
+
+    /// Only events in this status (pending, processing, success, failed,
+    /// exhausted, skipped, unknown)
+    status: Option<WebHookExecutionStatus>,
+}
+
+#[derive(Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct SummarizeWebHookExecutionsParams {
+    /// Only events created at or after this time (RFC 3339)
+    since: Option<chrono::DateTime<chrono::Local>>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -180,6 +204,119 @@ pub async fn list_webhooks_url(
         info.trigger.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
+    )
+    .await
+    {
+        Ok(res) => fetch_many_response_kind(res),
+        Err(err) => handle_mapped_error(err),
+    }
+}
+
+/// List webhook execution events
+///
+/// Newest first, optionally filtered by trigger and status. Shows the
+/// dispatching state and delivery counts only: never payloads, target URLs or
+/// response bodies.
+#[utoipa::path(
+    get,
+    operation_id = "list_webhook_executions",
+    params(
+        ListWebHookExecutionsParams,
+        PaginationParams,
+    ),
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 204,
+            description = "Not found.",
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Fetching success.",
+            body = [WebHookExecutionEvent],
+        ),
+    ),
+)]
+#[get("/executions")]
+pub async fn list_webhook_executions_url(
+    info: web::Query<ListWebHookExecutionsParams>,
+    page: web::Query<PaginationParams>,
+    profile: MyceliumProfileData,
+    app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    match list_webhook_execution_events(
+        profile.to_profile(),
+        info.trigger.to_owned(),
+        info.status.to_owned(),
+        page.page_size.to_owned(),
+        page.skip.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
+    )
+    .await
+    {
+        Ok(res) => fetch_many_response_kind(res),
+        Err(err) => handle_mapped_error(err),
+    }
+}
+
+/// Summarize webhook execution events
+///
+/// Event counts grouped by trigger and status.
+#[utoipa::path(
+    get,
+    operation_id = "summarize_webhook_executions",
+    params(SummarizeWebHookExecutionsParams),
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 204,
+            description = "Not found.",
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Fetching success.",
+            body = [WebHookExecutionSummary],
+        ),
+    ),
+)]
+#[get("/executions/summary")]
+pub async fn summarize_webhook_executions_url(
+    info: web::Query<SummarizeWebHookExecutionsParams>,
+    profile: MyceliumProfileData,
+    app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    match summarize_webhook_execution_events(
+        profile.to_profile(),
+        info.since.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

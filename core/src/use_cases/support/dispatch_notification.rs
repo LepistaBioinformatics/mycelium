@@ -9,6 +9,7 @@ use crate::{
     },
     models::AccountLifeCycle,
     settings::{DEFAULT_TENANT_ID_KEY, TEMPLATES},
+    use_cases::support::resolve_notification_locale,
 };
 
 use mycelium_base::{
@@ -34,25 +35,11 @@ pub(crate) async fn dispatch_notification<T: ToString>(
         populate_tenant_info(&parameters, &config, tenant_fetching_repo)
             .await?;
 
-    let locale = if let Some(locale) = locale {
-        //
-        // Use the tenant preferred locale if available
-        //
-        tracing::trace!("Communicating with tenant locale: {:?}", locale);
-        locale
-    } else if let Some(locale) = config.locale {
-        //
-        // Use the account locale if available
-        //
-        tracing::trace!("Communicating with system locale: {:?}", locale);
-        locale.async_get_or_error().await?
-    } else {
-        //
-        // Use the default locale if no locale is available
-        //
-        tracing::trace!("Communicating with default locale: 'en-us'");
-        "en-us".to_string()
-    };
+    //
+    // Lifecycle emails have no request locale: tenant, then config, then
+    // the default one
+    //
+    let locale = resolve_notification_locale(None, locale, &config).await?;
 
     //
     // Verify if the selected locale exists in templates folder
@@ -137,6 +124,7 @@ pub(crate) async fn dispatch_notification<T: ToString>(
             cc,
             subject: subject_,
             body,
+            headers: vec![],
         }))
         .await
 }
@@ -415,7 +403,7 @@ mod tests {
             _name: Option<String>,
             _owner: Option<Uuid>,
             _metadata: Option<(TenantMetaKey, String)>,
-            _tag: Option<(String, String)>,
+            _tag: crate::domain::dtos::tenant::TenantTagFilter,
             _page_size: Option<i32>,
             _skip: Option<i32>,
         ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {

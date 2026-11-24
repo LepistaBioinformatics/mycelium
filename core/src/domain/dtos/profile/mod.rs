@@ -1,9 +1,12 @@
+mod federated_resources;
 mod licensed_resources;
 mod owner;
 mod tenant_ownerships;
+mod with_federated;
 
 use std::collections::HashMap;
 
+pub use federated_resources::{FederatedResource, FederatedResources};
 pub use licensed_resources::{LicensedResource, LicensedResources};
 pub use owner::Owner;
 pub use tenant_ownerships::{TenantOwnership, TenantsOwnership};
@@ -121,6 +124,14 @@ pub struct Profile {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub licensed_resources: Option<LicensedResources>,
 
+    /// Grants peer instances asserted for the subject (FED-27)
+    ///
+    /// Kept apart from `licensed_resources`: filters see them only after
+    /// `with_federated` or `from_issuer` (FED-31). Never cached with the
+    /// profile; attached on every request (FED-26).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub federated_resources: Option<FederatedResources>,
+
     /// Tenants which the profile has ownership
     ///
     /// This field should be used to store the tenants that the profile has
@@ -228,6 +239,7 @@ impl Profile {
             account_was_deleted,
             verbose_status,
             licensed_resources,
+            federated_resources: None,
             tenants_ownership,
             filtering_state: None,
             meta: None,
@@ -957,6 +969,7 @@ mod tests {
             account_was_deleted: false,
             verbose_status: None,
             meta: None,
+            federated_resources: None,
             licensed_resources: Some(LicensedResources::Records(vec![
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
@@ -1237,6 +1250,7 @@ mod tests {
             account_was_deleted: false,
             verbose_status: None,
             meta: None,
+            federated_resources: None,
             licensed_resources: Some(LicensedResources::Records(vec![
                 LicensedResource {
                     acc_id: Uuid::new_v4(),

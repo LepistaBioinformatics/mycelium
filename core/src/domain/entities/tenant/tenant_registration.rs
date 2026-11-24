@@ -8,8 +8,6 @@ use mycelium_base::{
 use serde::{Deserialize, Serialize};
 use shaku::Interface;
 use std::collections::HashMap;
-use std::fmt::Result as FmResult;
-use std::fmt::{Debug, Display, Formatter};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -38,16 +36,4 @@ pub trait TenantRegistration: Interface + Send + Sync {
         key: TenantMetaKey,
         value: String,
     ) -> Result<CreateResponseKind<HashMap<String, String>>, MappedErrors>;
-}
-
-impl Display for dyn TenantRegistration {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
-        write!(f, "{}", self)
-    }
-}
-
-impl Debug for dyn TenantRegistration {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
-        write!(f, "{}", self)
-    }
 }

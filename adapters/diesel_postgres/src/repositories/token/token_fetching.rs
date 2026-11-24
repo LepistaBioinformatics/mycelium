@@ -9,7 +9,7 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::RunQueryDsl;
+use diesel::{sql_types::Text, RunQueryDsl};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -81,29 +81,32 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             }
         };
 
-        let sql = format!(
-            r#"
+        // Both values are bound, not interpolated. `signature` comes from the
+        // `sig` bean of the client-supplied connection string; it is only ever
+        // reached after `verify_signature` in the middleware, but that ordering
+        // lives in another layer and nothing here enforces it. Binding removes
+        // the invariant from the trust chain.
+        let sql = r#"
             SELECT id, expiration, meta
             FROM token
             WHERE EXISTS (
                 SELECT 1
                 FROM jsonb_array_elements(meta->'scope') AS elem
-                WHERE elem->>'aid' = '{}'
+                WHERE elem->>'aid' = $1
             )
             AND EXISTS (
                 SELECT 1
                 FROM jsonb_array_elements(meta->'scope') AS elem
-                WHERE elem->>'sig' = '{}'
-            )"#,
-            account_id, signature
-        );
+                WHERE elem->>'sig' = $2
+            )"#;
 
-        let tokens =
-            diesel::sql_query(sql)
-                .load::<TokenModel>(conn)
-                .map_err(|e| {
-                    fetching_err(format!("Failed to fetch token: {}", e))
-                })?;
+        let tokens = diesel::sql_query(sql)
+            .bind::<Text, _>(account_id.to_string())
+            .bind::<Text, _>(signature)
+            .load::<TokenModel>(conn)
+            .map_err(|e| {
+                fetching_err(format!("Failed to fetch token: {}", e))
+            })?;
 
         if tokens.is_empty() {
             return Ok(FetchResponseKind::NotFound(None));

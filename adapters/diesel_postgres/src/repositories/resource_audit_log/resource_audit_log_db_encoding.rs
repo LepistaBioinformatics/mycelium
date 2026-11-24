@@ -27,6 +27,12 @@ pub(super) fn resource_type_to_db_str(
         ResourceAuditResourceType::TenantMeta => "tenant_meta",
         ResourceAuditResourceType::GuestRole => "guest_role",
         ResourceAuditResourceType::Webhook => "webhook",
+        ResourceAuditResourceType::FederationResolution => {
+            "federation_resolution"
+        }
+        ResourceAuditResourceType::FederationTranslation => {
+            "federation_translation"
+        }
     }
 }
 
@@ -41,6 +47,12 @@ pub(super) fn resource_type_from_db_str(
         "tenant_meta" => Ok(ResourceAuditResourceType::TenantMeta),
         "guest_role" => Ok(ResourceAuditResourceType::GuestRole),
         "webhook" => Ok(ResourceAuditResourceType::Webhook),
+        "federation_resolution" => {
+            Ok(ResourceAuditResourceType::FederationResolution)
+        }
+        "federation_translation" => {
+            Ok(ResourceAuditResourceType::FederationTranslation)
+        }
         other => {
             Err(format!("Unknown resource_audit_log resource_type: {other}"))
         }

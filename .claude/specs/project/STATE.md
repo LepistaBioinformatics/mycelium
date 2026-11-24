@@ -1,7 +1,12 @@
 # State
 
-**Last Updated:** 2026-08-12
-**Current Work:** **9.0.0 stable release prep.** Single-file Postgres install
+**Last Updated:** 2026-08-28
+**Current Work:** **Release hygiene.** Issue #187 (parentless guest role grant,
+`features/parentless-guest-role-grant/`, AD-011) is **merged** into `develop` via PR #189.
+Follow-up in flight: the `9.0.0` release commit never came back from `main`, so `develop` still
+declared `9.0.0-rc.13` — see AD-012.
+
+**Also open:** **9.0.0 stable release prep.** Single-file Postgres install
 (`features/single-file-postgres-install/`, AD-010) implemented and verified on Postgres
 12/14/16, **awaiting user UAT before commit** — `up.sql` is now the complete 9.0.0 schema plus
 a new migration fixing a grant bug the fold exposed. Latest tag is `9.0.0-rc.12`; **open
@@ -21,6 +26,76 @@ Execute (see block below). Standalone Mode G1-G9 done, not committed yet. M1 ong
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-012: the stable release commit must be back-merged into `develop` (2026-08-28)
+
+`cargo release` bumps the version **on the branch it runs from**. `9.0.0` was cut on `main`, so
+`chore: Release version 9.0.0` (`cdd8f8bc`) lived only there; `develop` still declared
+`9.0.0-rc.13`. `release-prerelease.yml` runs from `develop`, so a dispatch with `beta` read the
+stale version and died on cargo-release's misleading `unsupported release level beta, only major,
+minor, and patch are supported` (run 33205154348).
+
+The message is a red herring: `src/ops/version.rs`'s `increment_beta` rejects the **rc → beta**
+transition specifically. Confirmed by diffing cargo-release 1.1.3 (last green run) against 1.1.5
+(the failing one) — that code is byte-identical, so the tool upgrade was not the cause.
+
+**The dangerous case is not the one that failed.** With `develop` behind, a `rc` dispatch would
+have silently cut `9.0.0-rc.14` — a version *behind* the already-published `9.0.0` — and shipped
+it to crates.io and GHCR without a single error.
+
+**Decisions:**
+
+- **Back-merge is a mandatory step after every stable release**, documented in
+  `docs/book/src/08-release-process.md` (it was not mentioned anywhere before) and added to the
+  release checklist.
+- **`release-prerelease.yml` gained a pre-flight step**, placed before the ~6min cargo-release
+  build so a bad dispatch fails in seconds. It refuses to run while `develop`'s version is lower
+  than `main`'s, and it explains the rc → beta rejection in its own words.
+- **The guard compares versions, not commit ancestry**, so it is satisfied whether a back-merge PR
+  is merged or squashed.
+- **`sort -V` is not semver.** It ranks `9.0.0-rc.13` *above* `9.0.0`. The comparator rewrites the
+  pre-release hyphen as `~` first, which GNU sort ranks before everything — verified against
+  rc/beta/stable/minor pairs.
+
+### AD-011: a root guest role is grantable by whoever already holds it (2026-08-28)
+
+**Feature:** `features/parentless-guest-role-grant/`. Closes issue #187.
+
+`guest_to_children_account` required the granted role to have a parent, which made every **root
+role undelegable by anyone** — `get_parent_by_child_id` returns NotFound and the call dies at
+MYC00013. The data-side workarounds are all closed: `insert_role_child` requires
+`parent.permission >= child.permission`, `get_or_create` de-duplicates on `(slug, permission)`,
+and `Permission` stops at `Write = 1`, so a same-slug parent is inexpressible; a different-slug
+parent authorizes nothing downstream because `LicensedResource.role` carries the **slug** and
+consumers match it by equality.
+
+**Decisions:**
+
+- **Branch on the parent instead of requiring one.** Parent found → the existing rules (hold the
+  parent, target listed in `parent.children`). Parent absent → the requester must already hold
+  the target role itself. The invariant that matters is preserved: nobody grants what they do
+  not have.
+- **The root path is scoped, the parent path is not.** The new possession check runs on
+  `profile.on_tenant(tenant_id).on_account(target_account_id)` so holding the role on one account
+  cannot authorize granting it on another. The pre-existing parent check keeps reading the full
+  license list — rule (1) forces `accounts-manager` on the *target* account but nothing
+  guarantees the requester holds the *parent role* there, so tightening it could break live
+  grants. Deliberate asymmetry; **follow-up candidate** once the production topology is
+  confirmed.
+- **Resolve the target role before the parent branch.** A nonexistent role has no parent either,
+  so the old order would route a missing role into the root path and report it as a missing
+  license.
+- **Staff/manager stay strict.** `get_related_account_or_error` short-circuits on `is_staff` /
+  `is_manager` without touching `licensed_resources`, so such a profile clears rule (1) and then
+  fails the possession check. That is today's behavior on the parent path; kept.
+- **Rejected: a third `Permission` level (`Admin = 2`).** `Permission::from_i32` maps
+  `_ => Read`, so any not-yet-updated service would silently read `2` as read-only.
+
+**Coverage:** the use case had **no tests**. Seven added in-file (root held / not held / held on
+another account, child with parent held / not held / not in children, missing target role).
+
+**Out of scope:** the webapp needs no change — `GuestRoleSelector` does not filter by hierarchy.
+The SDK slug-equality helper from the issue's *Related finding* is a separate ticket.
 
 ### AD-010: `up.sql` is the complete Postgres schema; folding is mandatory (2026-08-12)
 

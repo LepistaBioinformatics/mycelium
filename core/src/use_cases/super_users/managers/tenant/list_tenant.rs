@@ -1,7 +1,7 @@
 use crate::domain::{
     dtos::{
         profile::Profile,
-        tenant::{Tenant, TenantMetaKey},
+        tenant::{Tenant, TenantMetaKey, TenantTagFilter},
     },
     entities::TenantFetching,
 };
@@ -24,7 +24,7 @@ pub async fn list_tenant(
     name: Option<String>,
     owner: Option<Uuid>,
     metadata: Option<(TenantMetaKey, String)>,
-    tag: Option<(String, String)>,
+    tag: TenantTagFilter,
     page_size: Option<i32>,
     skip: Option<i32>,
     tenant_fetching_repo: Box<&dyn TenantFetching>,

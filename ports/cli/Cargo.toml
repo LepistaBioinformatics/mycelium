@@ -2,7 +2,7 @@
 name = "mycelium-cli"
 description = "Provide CLI ports to the mycelium project."
 
-version = "9.0.0"
+version = "9.1.0-rc.1"
 
 edition.workspace = true
 authors.workspace = true
@@ -20,6 +20,7 @@ readme.workspace = true
 [dependencies]
 
 env_logger.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 shaku.workspace = true
 tokio.workspace = true
@@ -36,6 +37,7 @@ rpassword = "7.3.0"
 myc-core.workspace = true
 mycelium-base.workspace = true
 mycelium-diesel.workspace = true
+mycelium-http-tools.workspace = true
 mycelium-notifier.workspace = true
 
 # ? ---------------------------------------------------------------------------

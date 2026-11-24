@@ -12,11 +12,13 @@
 /// - Check security group and inject the email, profile, and role scoped
 ///   connection string into the request.
 /// - Inject the secret into the request if needed.
+/// - Buffer the body of routes whose retry policy applies to the method.
 /// - Build the downstream url if the address has match.
 /// - Cleanup the headers of the response before send it to the client.
 /// - Stream the response to the requester.
 /// - Inject spans to the request to be used by the tracing system.
 ///
+mod buffer_request_body;
 mod build_the_gateway_response;
 mod check_method_permission;
 mod check_security_group;
@@ -25,9 +27,11 @@ mod initialize_downstream_request;
 mod inject_downstream_secret;
 mod match_downstream_route_from_request;
 mod prepare_body_idp_context;
+mod send_to_downstream_with_retry;
 mod stream_request_to_downstream;
 mod strip_inbound_mycelium_headers;
 
+use buffer_request_body::*;
 use build_the_gateway_response::*;
 use check_method_permission::*;
 use check_security_group::*;
@@ -43,10 +47,12 @@ use crate::models::api_config::ApiConfig;
 
 use actix_web::{web, HttpRequest, HttpResponse};
 use awc::Client;
+use myc_core::domain::dtos::http::HttpMethod;
 use myc_http_tools::{
     responses::GatewayError, settings::DEFAULT_REQUEST_ID_KEY,
 };
 use myc_mem_db::repositories::MemDbAppModule;
+use std::str::FromStr;
 use tracing::Instrument;
 
 /// Forward request to the client service.
@@ -207,6 +213,27 @@ pub(crate) async fn route_request(
     .await?;
 
     // ? -----------------------------------------------------------------------
+    // ? Buffer the body for retries
+    //
+    // Routes with a retry policy that applies to the request method replay the
+    // body on each attempt, so it must be held in memory.
+    //
+    // ? -----------------------------------------------------------------------
+
+    let upstream_method =
+        HttpMethod::from_str(upstream_request.method().as_str())
+            .unwrap_or_else(|unknown_method| unknown_method);
+
+    let (pre_buffered_body, payload) = buffer_request_body_for_retry(
+        route.retry.as_ref(),
+        &upstream_method,
+        pre_buffered_body,
+        payload,
+    )
+    .instrument(span.to_owned())
+    .await?;
+
+    // ? -----------------------------------------------------------------------
     // ? Submit downstream request
     //
     // Submit the request and stream the response to the downstream service.
@@ -220,6 +247,7 @@ pub(crate) async fn route_request(
         &upstream_request,
         payload,
         pre_buffered_body,
+        route.retry.as_ref(),
         route.callbacks.to_owned(),
         &app_module,
         user_info,

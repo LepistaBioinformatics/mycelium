@@ -1,6 +1,9 @@
-use crate::models::active_backend_modules::SqlAppModule;
+use crate::{
+    models::active_backend_modules::SqlAppModule,
+    rest::hosted_page_response::hosted_page_response,
+};
 
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{get, http::StatusCode, web, HttpResponse, Responder};
 use myc_core::{
     domain::entities::InstanceSettingsFetching, models::AccountLifeCycle,
     settings::TEMPLATES,
@@ -61,9 +64,7 @@ pub async fn bootstrap_claim_page_url(
     context.insert("domain_name", &domain_name);
 
     match TEMPLATES.render("web/instance-bootstrap-claim.html", &context) {
-        Ok(html) => HttpResponse::Ok()
-            .content_type("text/html; charset=utf-8")
-            .body(html),
+        Ok(html) => hosted_page_response(StatusCode::OK, html),
         Err(err) => {
             warn!(
                 "Failed to render instance-bootstrap-claim template: {}",
@@ -79,9 +80,7 @@ fn render_bootstrap_error_page(domain_name: &str) -> HttpResponse {
     context.insert("domain_name", domain_name);
 
     match TEMPLATES.render("web/instance-bootstrap-error.html", &context) {
-        Ok(html) => HttpResponse::NotFound()
-            .content_type("text/html; charset=utf-8")
-            .body(html),
+        Ok(html) => hosted_page_response(StatusCode::NOT_FOUND, html),
         Err(err) => {
             warn!(
                 "Failed to render instance-bootstrap-error template: {}",

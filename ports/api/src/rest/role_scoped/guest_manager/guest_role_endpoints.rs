@@ -1,6 +1,7 @@
 use crate::{dtos::MyceliumProfileData, rest::shared::PaginationParams};
 
 use crate::models::active_backend_modules::SqlAppModule;
+use crate::revoke_federated_access::FederatedAccessRevocation;
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::dtos::guest_role::{GuestRole, Permission},
@@ -233,6 +234,12 @@ pub async fn delete_guest_role_url(
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let revocation = FederatedAccessRevocation::of_guest_role(
+        app_module.get_ref(),
+        path.to_owned(),
+    )
+    .await;
+
     match delete_guest_role(
         profile.to_profile(),
         path.to_owned(),
@@ -241,7 +248,10 @@ pub async fn delete_guest_role_url(
     )
     .await
     {
-        Ok(res) => delete_response_kind(res),
+        Ok(res) => {
+            revocation.queue(app_module.get_ref()).await;
+            delete_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }
@@ -352,6 +362,12 @@ pub async fn update_guest_role_permissions_url(
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let revocation = FederatedAccessRevocation::of_guest_role(
+        app_module.get_ref(),
+        path.to_owned(),
+    )
+    .await;
+
     match update_guest_role_permission(
         profile.to_profile(),
         path.to_owned(),
@@ -362,7 +378,10 @@ pub async fn update_guest_role_permissions_url(
     )
     .await
     {
-        Ok(res) => updating_response_kind(res),
+        Ok(res) => {
+            revocation.queue(app_module.get_ref()).await;
+            updating_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }

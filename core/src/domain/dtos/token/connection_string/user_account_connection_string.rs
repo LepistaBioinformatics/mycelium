@@ -5,7 +5,7 @@
 //
 // ? ---------------------------------------------------------------------------
 
-use super::ConnectionStringBean;
+use super::{ConnectionStringBean, NotificationScope};
 use crate::{
     domain::dtos::{
         native_error_codes::NativeErrorCodes,
@@ -60,6 +60,42 @@ impl UserAccountScope {
             beans.push(ConnectionStringBean::SID(subscription_account_id));
         }
 
+        beans.push(ConnectionStringBean::KVR(config.hmac_primary_version));
+
+        let mut self_signed_scope = Self(beans);
+
+        self_signed_scope.sign_token(config, None).await?;
+
+        Ok(self_signed_scope)
+    }
+
+    /// Create a new notification AccountScope
+    ///
+    /// A notification scope carries the `SCP` and `SVC` beans and never the
+    /// `RLS` or `SID` beans. The beans are pushed in the fixed order
+    /// `AID, EDT, TID?, SCP, SVC, KVR` and then signed, so removing or
+    /// changing any of them fails `verify_signature`.
+    ///
+    #[tracing::instrument(name = "new_notification", skip(config))]
+    pub async fn new_notification(
+        account_id: Uuid,
+        expires_at: DateTime<Local>,
+        tenant_id: Option<Uuid>,
+        scopes: Vec<NotificationScope>,
+        sender_tag: String,
+        config: AccountLifeCycle,
+    ) -> Result<Self, MappedErrors> {
+        let mut beans = vec![
+            ConnectionStringBean::AID(account_id),
+            ConnectionStringBean::EDT(expires_at),
+        ];
+
+        if let Some(tenant_id) = tenant_id {
+            beans.push(ConnectionStringBean::TID(tenant_id));
+        }
+
+        beans.push(ConnectionStringBean::SCP(scopes));
+        beans.push(ConnectionStringBean::SVC(sender_tag));
         beans.push(ConnectionStringBean::KVR(config.hmac_primary_version));
 
         let mut self_signed_scope = Self(beans);
@@ -129,6 +165,32 @@ impl UserAccountScope {
         self.0.iter().find_map(|bean| {
             if let ConnectionStringBean::SID(id) = bean {
                 return Some(*id);
+            }
+
+            None
+        })
+    }
+
+    /// Get the notification scopes
+    ///
+    /// `Some` marks a scoped connection string, which must never resolve a
+    /// profile.
+    #[tracing::instrument(name = "get_scopes", skip(self))]
+    pub fn get_scopes(&self) -> Option<Vec<NotificationScope>> {
+        self.0.iter().find_map(|bean| {
+            if let ConnectionStringBean::SCP(scopes) = bean {
+                return Some(scopes.clone());
+            }
+
+            None
+        })
+    }
+
+    #[tracing::instrument(name = "get_sender_tag", skip(self))]
+    pub fn get_sender_tag(&self) -> Option<String> {
+        self.0.iter().find_map(|bean| {
+            if let ConnectionStringBean::SVC(sender_tag) = bean {
+                return Some(sender_tag.clone());
             }
 
             None
@@ -386,6 +448,16 @@ impl UserAccountConnectionString {
         self.scope.get_service_account_id()
     }
 
+    #[tracing::instrument(name = "get_scopes", skip(self))]
+    pub fn get_scopes(&self) -> Option<Vec<NotificationScope>> {
+        self.scope.get_scopes()
+    }
+
+    #[tracing::instrument(name = "get_sender_tag", skip(self))]
+    pub fn get_sender_tag(&self) -> Option<String> {
+        self.scope.get_sender_tag()
+    }
+
     //#[tracing::instrument(name = "get_permissioned_roles", skip(self))]
     //pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
     //    self.scope.get_permissioned_roles()
@@ -553,6 +625,161 @@ mod tests {
         let err =
             outcome.expect_err("downgrade attempt must fail verification");
         assert_eq!(err.code().to_string(), "MYC00032");
+        Ok(())
+    }
+
+    // ? -----------------------------------------------------------------
+    // ? Notification scope (SCP / SVC)
+    // ? -----------------------------------------------------------------
+
+    async fn issue_notification_scope(
+        config: AccountLifeCycle,
+        tenant_id: Option<Uuid>,
+    ) -> Result<UserAccountScope, MappedErrors> {
+        UserAccountScope::new_notification(
+            Uuid::new_v4(),
+            Local::now(),
+            tenant_id,
+            vec![NotificationScope::NotifyEmail],
+            "service-01".to_string(),
+            config,
+        )
+        .await
+    }
+
+    #[tokio::test]
+    async fn notification_scope_signs_then_verifies() -> Result<(), MappedErrors>
+    {
+        let config = base_config();
+        let tenant_id = Uuid::new_v4();
+        let scope =
+            issue_notification_scope(config.clone(), Some(tenant_id)).await?;
+
+        scope.verify_signature(&config).await?;
+
+        assert_eq!(
+            scope.get_scopes(),
+            Some(vec![NotificationScope::NotifyEmail])
+        );
+        assert_eq!(scope.get_sender_tag(), Some("service-01".to_string()));
+        assert_eq!(scope.get_tenant_id(), Some(tenant_id));
+        assert!(scope.get_roles().is_none());
+        assert!(scope.get_service_account_id().is_none());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn notification_scope_bean_order_is_fixed() -> Result<(), MappedErrors>
+    {
+        let scope =
+            issue_notification_scope(base_config(), Some(Uuid::new_v4()))
+                .await?;
+
+        let keys: Vec<String> = scope
+            .get_scope_beans()
+            .iter()
+            .map(|bean| bean.to_string().split('=').next().unwrap().to_string())
+            .collect();
+
+        assert_eq!(keys, vec!["aid", "edt", "tid", "scp", "svc", "kvr", "sig"]);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn notification_scope_survives_string_round_trip(
+    ) -> Result<(), MappedErrors> {
+        let config = base_config();
+        let scope = issue_notification_scope(config.clone(), None).await?;
+
+        let decoded = UserAccountScope::try_from(scope.to_string()).unwrap();
+
+        decoded.verify_signature(&config).await?;
+        assert_eq!(
+            decoded.get_scopes(),
+            Some(vec![NotificationScope::NotifyEmail])
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn notification_scope_rejects_removed_scp() -> Result<(), MappedErrors>
+    {
+        let config = base_config();
+        let scope = issue_notification_scope(config.clone(), None).await?;
+
+        let stripped: Vec<ConnectionStringBean> = scope
+            .get_scope_beans()
+            .into_iter()
+            .filter(|bean| !matches!(bean, ConnectionStringBean::SCP(_)))
+            .collect();
+
+        let err = UserAccountScope(stripped)
+            .verify_signature(&config)
+            .await
+            .expect_err("removing SCP must fail verification");
+
+        assert_eq!(err.code().to_string(), "MYC00032");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn notification_scope_rejects_changed_svc() -> Result<(), MappedErrors>
+    {
+        let config = base_config();
+        let scope = issue_notification_scope(config.clone(), None).await?;
+
+        let tampered: Vec<ConnectionStringBean> = scope
+            .get_scope_beans()
+            .into_iter()
+            .map(|bean| match bean {
+                ConnectionStringBean::SVC(_) => {
+                    ConnectionStringBean::SVC("other".to_string())
+                }
+                other => other,
+            })
+            .collect();
+
+        let err = UserAccountScope(tampered)
+            .verify_signature(&config)
+            .await
+            .expect_err("changing SVC must fail verification");
+
+        assert_eq!(err.code().to_string(), "MYC00032");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn notification_scope_rejects_reordered_beans(
+    ) -> Result<(), MappedErrors> {
+        let config = base_config();
+        let scope = issue_notification_scope(config.clone(), None).await?;
+
+        let mut reordered = scope.get_scope_beans();
+        let scp_index = reordered
+            .iter()
+            .position(|bean| matches!(bean, ConnectionStringBean::SCP(_)))
+            .unwrap();
+        reordered.swap(scp_index, scp_index + 1);
+
+        let err = UserAccountScope(reordered)
+            .verify_signature(&config)
+            .await
+            .expect_err("reordering beans must fail verification");
+
+        assert_eq!(err.code().to_string(), "MYC00032");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn general_scope_has_no_notification_beans(
+    ) -> Result<(), MappedErrors> {
+        let config = base_config();
+        let scope = issue_scope(config.clone()).await?;
+
+        scope.verify_signature(&config).await?;
+
+        assert!(scope.get_scopes().is_none());
+        assert!(scope.get_sender_tag().is_none());
         Ok(())
     }
 

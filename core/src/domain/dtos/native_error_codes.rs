@@ -249,6 +249,105 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00032,
+
+    ///
+    /// code: "MYC00033",
+    /// message: "Scoped connection string not allowed on this surface.",
+    /// details: "Dispatched when a connection string carrying a scope (SCP bean, e.g. a notification string) is presented to a routed, REST or RPC surface that accepts only general connection strings.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00033,
+
+    ///
+    /// code: "MYC00034",
+    /// message: "Connection string lacks the notification scope.",
+    /// details: "Dispatched when a general connection string, or one without the notify:email scope, is presented to the notification send endpoint.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00034,
+
+    ///
+    /// code: "MYC00035",
+    /// message: "Invalid notification connection string request.",
+    /// details: "Dispatched when the requested expiration is not positive or exceeds the configured maximum, or when the service recipient policy is tenantMembers and no tenant was informed.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00035,
+
+    ///
+    /// code: "MYC00036",
+    /// message: "Service notifications not enabled.",
+    /// details: "Dispatched when the target service has no notifications block, or it was disabled after the connection string was issued.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00036,
+
+    ///
+    /// code: "MYC00037",
+    /// message: "Notification issuer not allowed.",
+    /// details: "Dispatched when the issuer lacks the service issuerRoles, or the tenant is not listed in the service issuerTenants, at issuance or at send time.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00037,
+
+    ///
+    /// code: "MYC00038",
+    /// message: "Invalid notification content.",
+    /// details: "Dispatched when the template is not declared or not found, a variable is missing or invalid, or the recipient count is out of range.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00038,
+
+    ///
+    /// code: "MYC00039",
+    /// message: "Notification recipient not allowed.",
+    /// details: "Dispatched when a recipient violates the service recipient policy.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00039,
+
+    ///
+    /// code: "MYC00040",
+    /// message: "Notification quota exceeded.",
+    /// details: "Dispatched when the service exceeded its hourly notification quota.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00040,
+
+    ///
+    /// code: "MYC00041",
+    /// message: "Downstream profile signing could not be prepared.",
+    /// details: "Dispatched at boot when an Ed25519 profile signing key cannot be derived from a configured connection-string HMAC secret (`core.accountLifeCycle.hmacSecrets`), or when a derived key fails its self-test. The gateway refuses to start.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00041,
+
+    ///
+    /// code: "MYC00042",
+    /// message: "Downstream profile signature could not be issued.",
+    /// details: "Dispatched when the gateway fails to produce the `x-mycelium-profile-signature` header for a request. The request is not forwarded to the downstream service.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00042,
+
+    ///
+    /// code: "MYC00043",
+    /// message: "Invalid downstream profile signature verification configuration.",
+    /// details: "Dispatched by a Rust downstream service (`GatewayProfileData`) when `MYCELIUM_JWKS_URL`, `MYCELIUM_JWKS_ALLOW_INSECURE_HTTP`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` is invalid, when the audience is missing while `MYCELIUM_JWKS_URL` is set, or when the gateway profile JWKS is unsafe or malformed. Requests fail closed instead of skipping verification.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00043,
 }
 
 impl NativeErrorCodes {
@@ -298,6 +397,17 @@ impl NativeErrorCodes {
             Self::MYC00030 => "MYC00030",
             Self::MYC00031 => "MYC00031",
             Self::MYC00032 => "MYC00032",
+            Self::MYC00033 => "MYC00033",
+            Self::MYC00034 => "MYC00034",
+            Self::MYC00035 => "MYC00035",
+            Self::MYC00036 => "MYC00036",
+            Self::MYC00037 => "MYC00037",
+            Self::MYC00038 => "MYC00038",
+            Self::MYC00039 => "MYC00039",
+            Self::MYC00040 => "MYC00040",
+            Self::MYC00041 => "MYC00041",
+            Self::MYC00042 => "MYC00042",
+            Self::MYC00043 => "MYC00043",
         }
     }
 
@@ -463,6 +573,72 @@ impl NativeErrorCodes {
                 "Connection string signature mismatch.".to_string(),
                 true,
             )?.with_details("Dispatched when HMAC verification fails: the stored SIG does not match the recomputed signature under the version-selected HMAC key.".to_string())),
+            Self::MYC00033 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                33,
+                "Scoped connection string not allowed on this surface.".to_string(),
+                true,
+            )?.with_details("Dispatched when a connection string carrying a scope (SCP bean, e.g. a notification string) is presented to a routed, REST or RPC surface that accepts only general connection strings.".to_string())),
+            Self::MYC00034 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                34,
+                "Connection string lacks the notification scope.".to_string(),
+                true,
+            )?.with_details("Dispatched when a general connection string, or one without the notify:email scope, is presented to the notification send endpoint.".to_string())),
+            Self::MYC00035 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                35,
+                "Invalid notification connection string request.".to_string(),
+                true,
+            )?.with_details("Dispatched when the requested expiration is not positive or exceeds the configured maximum, or when the service recipient policy is tenantMembers and no tenant was informed.".to_string())),
+            Self::MYC00036 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                36,
+                "Service notifications not enabled.".to_string(),
+                true,
+            )?.with_details("Dispatched when the target service has no notifications block, or it was disabled after the connection string was issued.".to_string())),
+            Self::MYC00037 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                37,
+                "Notification issuer not allowed.".to_string(),
+                true,
+            )?.with_details("Dispatched when the issuer lacks the service issuerRoles, or the tenant is not listed in the service issuerTenants, at issuance or at send time.".to_string())),
+            Self::MYC00038 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                38,
+                "Invalid notification content.".to_string(),
+                true,
+            )?.with_details("Dispatched when the template is not declared or not found, a variable is missing or invalid, or the recipient count is out of range.".to_string())),
+            Self::MYC00039 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                39,
+                "Notification recipient not allowed.".to_string(),
+                true,
+            )?.with_details("Dispatched when a recipient violates the service recipient policy.".to_string())),
+            Self::MYC00040 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                40,
+                "Notification quota exceeded.".to_string(),
+                true,
+            )?.with_details("Dispatched when the service exceeded its hourly notification quota.".to_string())),
+            Self::MYC00041 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                41,
+                "Downstream profile signing could not be prepared.".to_string(),
+                true,
+            )?.with_details("Dispatched at boot when an Ed25519 profile signing key cannot be derived from a configured connection-string HMAC secret (`core.accountLifeCycle.hmacSecrets`), or when a derived key fails its self-test. The gateway refuses to start.".to_string())),
+            Self::MYC00042 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                42,
+                "Downstream profile signature could not be issued.".to_string(),
+                true,
+            )?.with_details("Dispatched when the gateway fails to produce the `x-mycelium-profile-signature` header for a request. The request is not forwarded to the downstream service.".to_string())),
+            Self::MYC00043 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                43,
+                "Invalid downstream profile signature verification configuration.".to_string(),
+                true,
+            )?.with_details("Dispatched by a Rust downstream service (`GatewayProfileData`) when `MYCELIUM_JWKS_URL`, `MYCELIUM_JWKS_ALLOW_INSECURE_HTTP`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` is invalid, when the audience is missing while `MYCELIUM_JWKS_URL` is set, or when the gateway profile JWKS is unsafe or malformed. Requests fail closed instead of skipping verification.".to_string())),
         }
     }
 

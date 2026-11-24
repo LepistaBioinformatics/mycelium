@@ -1,5 +1,9 @@
+use super::notification_dispatch_retention::NotificationDispatchRetention;
+
+use chrono::Utc;
 use myc_core::domain::entities::{
-    LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
+    LocalMessageReading, LocalMessageWrite, NotificationDispatchRegistration,
+    RemoteMessageWrite,
 };
 use myc_notifier::{executor::consume_messages, models::QueueConfig};
 use rand::Rng;
@@ -7,7 +11,9 @@ use std::{sync::Arc, time::Duration};
 
 /// Dispatch email messages
 ///
-/// Spawns a new thread to consume messages from the email queue.
+/// Spawns a new thread to consume messages from the email queue. The same
+/// tick also applies the notification dispatch retention, at most once per
+/// hour (`retention_days` from `[core.serviceNotifications]`).
 ///
 #[tracing::instrument(name = "email_dispatcher", skip_all)]
 pub(crate) async fn email_dispatcher(
@@ -15,9 +21,13 @@ pub(crate) async fn email_dispatcher(
     local_message_read_repo: Arc<dyn LocalMessageReading>,
     local_message_write_repo: Arc<dyn LocalMessageWrite>,
     remote_message_write_repo: Arc<dyn RemoteMessageWrite>,
+    notification_dispatch_repo: Arc<dyn NotificationDispatchRegistration>,
+    retention_days: u32,
 ) {
     tokio::spawn(async move {
         tracing::info!("Starting email dispatcher");
+
+        let mut retention = NotificationDispatchRetention::new(retention_days);
 
         let mut interval = actix_rt::time::interval(Duration::from_secs(
             match queue_config
@@ -51,6 +61,10 @@ pub(crate) async fn email_dispatcher(
 
         loop {
             interval.tick().await;
+
+            retention
+                .purge_if_due(Utc::now(), notification_dispatch_repo.as_ref())
+                .await;
 
             let queue_name = match queue_config
                 .clone()

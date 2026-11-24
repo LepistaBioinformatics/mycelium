@@ -6,6 +6,7 @@ use crate::domain::{
     },
     entities::{ErrorCodeFetching, ErrorCodeUpdating},
 };
+use crate::use_cases::shared::error_codes::refuse_native_error_code_write;
 
 use mycelium_base::{
     entities::{FetchResponseKind, UpdatingResponseKind},
@@ -13,6 +14,8 @@ use mycelium_base::{
 };
 
 /// Update the message and details of an error code.
+///
+/// Native error codes are defined in code and cannot be updated.
 ///
 /// This action should be only performed by any registered and active user.
 #[tracing::instrument(
@@ -48,6 +51,8 @@ pub async fn update_error_code_message_and_details(
     // ? Fetch error code
     // ? -----------------------------------------------------------------------
 
+    refuse_native_error_code_write(&prefix, code)?;
+
     let mut error_code = match error_code_fetching_repo
         .get(prefix.to_owned(), code)
         .await?
@@ -77,5 +82,39 @@ pub async fn update_error_code_message_and_details(
                 .as_error();
         }
         UpdatingResponseKind::Updated(error_code) => Ok(error_code),
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? TESTS
+// ? ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        domain::entities::{MockErrorCodeFetching, MockErrorCodeUpdating},
+        use_cases::role_scoped::system_manager::error_codes::test_profiles::system_manager_profile,
+    };
+
+    #[tokio::test]
+    async fn refuses_updating_native() {
+        let fetching = MockErrorCodeFetching::new();
+        let updating = MockErrorCodeUpdating::new();
+
+        let error = update_error_code_message_and_details(
+            system_manager_profile(),
+            "MYC".to_string(),
+            5,
+            "Changed message".to_string(),
+            None,
+            Box::new(&fetching),
+            Box::new(&updating),
+        )
+        .await
+        .expect_err("updating a native must be refused");
+
+        assert!(error.expected());
+        assert!(error.has_str_code(NativeErrorCodes::MYC00018.as_str()));
     }
 }

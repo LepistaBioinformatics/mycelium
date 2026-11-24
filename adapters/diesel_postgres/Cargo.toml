@@ -2,7 +2,7 @@
 name = "mycelium-diesel"
 description = "Provide diesel adapters to the mycelium project."
 
-version = "9.0.0"
+version = "9.1.0-rc.1"
 
 edition.workspace = true
 authors.workspace = true
@@ -17,7 +17,7 @@ readme.workspace = true
 
 # RUSTSEC-2026-0136 / RUSTSEC-2026-0137: force diesel >= 2.3.8 (command
 # injection in COPY FROM/TO; unaligned access in SqliteAggregate impls).
-diesel = { version = "2.3.8", features = [
+diesel = { version = "2.4", features = [
     "postgres",
     "uuid",
     "serde_json",
