@@ -27,6 +27,22 @@
 # audit) -- and drop reqwest 0.11 from `core/` at that point too, since it is
 # the other 0.3 root.
 #
+#
+# RUSTSEC-2026-0594 -- cookie private-cookie nonces can repeat after fork()
+# (AES-GCM nonce reuse in `PrivateJar::add` / `add_original`).
+#
+# Patched only in cookie >= 0.18.3. actix-web 4.20 and awc 3.11, the newest
+# releases, still declare `cookie = "^0.16"`, so the graph keeps 0.16.2.
+#
+# The gateway is not affected: only `PrivateJar` is vulnerable, and that type
+# exists only with cookie's `private` / `secure` features, which nothing in
+# the graph enables (`cargo tree -e features -i cookie` shows `default` and
+# `percent-encode` only). The gateway sets plain cookies and never forks.
+#
+# Revisit when actix-web moves to cookie >= 0.18.3, or if anything enables
+# the `private` / `secure` features (drop this entry and re-run the audit).
+#
 ignore = [
     "RUSTSEC-2026-0258",
+    "RUSTSEC-2026-0594",
 ]
