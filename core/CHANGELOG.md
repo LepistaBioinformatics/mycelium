@@ -80,6 +80,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - *(examples)* Use generic service names instead of picoclaw
+- Release version 9.1.0-rc.1
 
 ## [9.0.1-beta.5] - 2026-10-22
 

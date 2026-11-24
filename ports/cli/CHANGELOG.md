@@ -16,6 +16,10 @@ All notable changes to this project will be documented in this file.
 - *(cli)* Supply the audit channel when federation describe builds the SQL module
 - *(cli)* Supply the audit channel when federation commands build the SQL module
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.1.0-rc.1
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### ⚙️ Miscellaneous Tasks

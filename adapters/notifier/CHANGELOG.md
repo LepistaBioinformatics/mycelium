@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(notifications)* Add the delivery plumbing for service emails
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.1.0-rc.1
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### ⚙️ Miscellaneous Tasks

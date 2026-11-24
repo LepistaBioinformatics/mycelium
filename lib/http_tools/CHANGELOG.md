@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 - *(http-tools)* Add cross-language profile signature contract vectors
 - *(federation)* Two-instance trust end to end
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.1.0-rc.1
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### 🚀 Features
