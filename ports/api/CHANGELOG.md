@@ -75,6 +75,10 @@ All notable changes to this project will be documented in this file.
 
 - *(api)* Serialize the TOML path in the config handler test
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.1.0-rc.1
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### 🚀 Features

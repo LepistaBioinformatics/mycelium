@@ -2,7 +2,7 @@
 name = "mycelium-federation-client"
 description = "HTTP client the mycelium gateway uses to call peer instances (federation)."
 
-version = "9.1.0-rc.1"
+version = "9.1.0"
 
 edition.workspace = true
 authors.workspace = true

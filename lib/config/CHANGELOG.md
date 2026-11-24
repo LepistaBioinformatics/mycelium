@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - *(core)* Add profile signature types and signing configuration
 - *(profile-signing)* Merge develop and derive the signing keys from hmacSecrets
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.1.0-rc.1
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### ⚙️ Miscellaneous Tasks

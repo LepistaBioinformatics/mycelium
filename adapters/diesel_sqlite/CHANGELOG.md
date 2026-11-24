@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file.
 - *(deps)* Move diesel to 2.4 to take the patched bundled SQLite
 - *(sqlite)* Set created on the tenant management account link
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.1.0-rc.1
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### 🚀 Features

@@ -32,6 +32,10 @@ All notable changes to this project will be documented in this file.
 - *(federation)* Never let a handshake lift a quarantine
 - *(diesel)* Make the account soft delete persist
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.1.0-rc.1
+
 ## [9.0.1-beta.5] - 2026-10-22
 
 ### 🚀 Features
